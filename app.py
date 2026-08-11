@@ -22,7 +22,7 @@ st.write("YOLOv8-based Normal and Overflow Detection")
 # -----------------------------
 # Load Model
 # -----------------------------
-MODEL_PATH = "/content/drive/MyDrive/garbage_project/improved_training/garbage_yolov8n_improved/weights/best.pt"
+MODEL_PATH = "best.pt"
 
 @st.cache_resource
 def load_model():
