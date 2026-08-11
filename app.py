@@ -203,4 +203,3 @@ if uploaded_file is not None:
             st.error(
                 "❌ Prediction video could not be generated."
             )
-```
