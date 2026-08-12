@@ -271,22 +271,25 @@ if uploaded_file is not None:
         # Detection Result
         # -----------------------------
 
-        st.subheader(
-            "📊 Detection Result"
-        )
+      st.subheader("📊 Detection Result")
 
-        st.video(output_path)
+# Read output video
+with open(output_path, "rb") as video_file:
+    video_bytes = video_file.read()
 
-        # -----------------------------
-        # Download Result
-        # -----------------------------
+# Display output video
+st.video(
+    video_bytes,
+    format="video/mp4"
+)
 
-        with open(
-            output_path,
-            "rb"
-        ) as video_file:
-
-            video_bytes = video_file.read()
+# Download button
+st.download_button(
+    label="⬇️ Download Detection Result",
+    data=video_bytes,
+    file_name="garbage_detection_result.mp4",
+    mime="video/mp4"
+)
 
         st.download_button(
             label="⬇️ Download Detection Result",
