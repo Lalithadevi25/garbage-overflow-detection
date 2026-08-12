@@ -3,14 +3,13 @@ from ultralytics import YOLO
 import tempfile
 import os
 import cv2
-import gc
 import imageio_ffmpeg
 import subprocess
+import gc
 
-
-# ==========================================
+# =========================================================
 # PAGE CONFIGURATION
-# ==========================================
+# =========================================================
 
 st.set_page_config(
     page_title="Garbage Overflow Detection",
@@ -18,10 +17,9 @@ st.set_page_config(
     layout="wide"
 )
 
-
-# ==========================================
+# =========================================================
 # TITLE
-# ==========================================
+# =========================================================
 
 st.title("🗑️ Garbage Overflow Detection System")
 
@@ -29,10 +27,9 @@ st.write(
     "YOLOv8-based Normal and Overflow Detection"
 )
 
-
-# ==========================================
+# =========================================================
 # LOAD MODEL
-# ==========================================
+# =========================================================
 
 MODEL_PATH = "best.pt"
 
@@ -44,28 +41,26 @@ def load_model():
 
 model = load_model()
 
-
-# ==========================================
+# =========================================================
 # VIDEO UPLOAD
-# ==========================================
+# =========================================================
 
 uploaded_file = st.file_uploader(
     "📤 Upload a garbage video",
     type=["mp4", "avi", "mov"]
 )
 
-
-# ==========================================
+# =========================================================
 # IF VIDEO IS UPLOADED
-# ==========================================
+# =========================================================
 
 if uploaded_file is not None:
 
     st.success("✅ Video uploaded successfully!")
 
-    # --------------------------------------
-    # Save uploaded video
-    # --------------------------------------
+    # =====================================================
+    # SAVE INPUT VIDEO
+    # =====================================================
 
     input_file = tempfile.NamedTemporaryFile(
         delete=False,
@@ -83,18 +78,17 @@ if uploaded_file is not None:
 
     input_file.close()
 
-    # --------------------------------------
-    # Display Input Video
-    # --------------------------------------
+    # =====================================================
+    # DISPLAY INPUT VIDEO
+    # =====================================================
 
     st.subheader("🎥 Input Video")
 
     st.video(input_file.name)
 
-
-    # ======================================
+    # =====================================================
     # DETECT BUTTON
-    # ======================================
+    # =====================================================
 
     if st.button("🔍 Detect Garbage Overflow"):
 
@@ -102,28 +96,25 @@ if uploaded_file is not None:
             "Processing video... Please wait."
         )
 
-
-        # ----------------------------------
-        # Temporary output file
-        # ----------------------------------
-
-        output_file = tempfile.NamedTemporaryFile(
-            delete=False,
-            suffix=".mp4"
-        )
-
-        output_path = output_file.name
-
-        output_file.close()
-
-
-        # ==================================
+        # =================================================
         # OPEN INPUT VIDEO
-        # ==================================
+        # =================================================
 
         cap = cv2.VideoCapture(
             input_file.name
         )
+
+        if not cap.isOpened():
+
+            st.error(
+                "❌ Unable to open the uploaded video."
+            )
+
+            st.stop()
+
+        # =================================================
+        # GET VIDEO PROPERTIES
+        # =================================================
 
         fps = cap.get(
             cv2.CAP_PROP_FPS
@@ -132,43 +123,73 @@ if uploaded_file is not None:
         if fps <= 0:
             fps = 25
 
-
-        width = int(
+        original_width = int(
             cap.get(
                 cv2.CAP_PROP_FRAME_WIDTH
             )
         )
 
-        height = int(
+        original_height = int(
             cap.get(
                 cv2.CAP_PROP_FRAME_HEIGHT
             )
         )
 
+        total_frames = int(
+            cap.get(
+                cv2.CAP_PROP_FRAME_COUNT
+            )
+        )
 
-        # ==================================
-        # RESIZE VIDEO
-        # ==================================
+        # =================================================
+        # PRESERVE ORIGINAL ASPECT RATIO
+        # =================================================
 
         max_width = 720
 
-        if width > max_width:
+        if original_width > max_width:
 
-            new_width = max_width
+            output_width = max_width
 
-            new_height = int(
-                height * max_width / width
+            output_height = int(
+                original_height
+                * output_width
+                / original_width
             )
 
         else:
 
-            new_width = width
-            new_height = height
+            output_width = original_width
+            output_height = original_height
 
+        # -------------------------------------------------
+        # Make dimensions even for H.264 compatibility
+        # -------------------------------------------------
 
-        # ==================================
+        output_width = output_width - (
+            output_width % 2
+        )
+
+        output_height = output_height - (
+            output_height % 2
+        )
+
+        # =================================================
+        # CREATE TEMPORARY OUTPUT
+        # =================================================
+
+        temp_output = tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=".mp4"
+        )
+
+        output_path = temp_output.name
+
+        temp_output.close()
+
+        # =================================================
         # VIDEO WRITER
-        # ==================================
+        # =================================================
 
         fourcc = cv2.VideoWriter_fourcc(
             *"mp4v"
@@ -178,13 +199,25 @@ if uploaded_file is not None:
             output_path,
             fourcc,
             fps,
-            (new_width, new_height)
+            (
+                output_width,
+                output_height
+            )
         )
 
+        if not writer.isOpened():
 
-        # ==================================
+            cap.release()
+
+            st.error(
+                "❌ Unable to create output video."
+            )
+
+            st.stop()
+
+        # =================================================
         # DETECTION VARIABLES
-        # ==================================
+        # =================================================
 
         overflow_found = False
 
@@ -194,24 +227,15 @@ if uploaded_file is not None:
 
         frame_count = 0
 
-
-        total_frames = int(
-            cap.get(
-                cv2.CAP_PROP_FRAME_COUNT
-            )
-        )
-
-
-        # ==================================
+        # =================================================
         # PROGRESS BAR
-        # ==================================
+        # =================================================
 
         progress = st.progress(0)
 
-
-        # ==================================
-        # PROCESS VIDEO FRAME BY FRAME
-        # ==================================
+        # =================================================
+        # PROCESS VIDEO
+        # =================================================
 
         while True:
 
@@ -220,39 +244,24 @@ if uploaded_file is not None:
             if not success:
                 break
 
-
             frame_count += 1
 
-
-            # --------------------------------
-            # Process every 2nd frame
-            # --------------------------------
-
-            if frame_count % 2 != 0:
-
-                frame = cv2.resize(
-                    frame,
-                    (new_width, new_height)
-                )
-
-                writer.write(frame)
-
-                continue
-
-
-            # --------------------------------
-            # Resize frame
-            # --------------------------------
+            # =============================================
+            # RESIZE WHILE PRESERVING ASPECT RATIO
+            # =============================================
 
             frame = cv2.resize(
                 frame,
-                (new_width, new_height)
+                (
+                    output_width,
+                    output_height
+                ),
+                interpolation=cv2.INTER_AREA
             )
 
-
-            # --------------------------------
-            # YOLO prediction
-            # --------------------------------
+            # =============================================
+            # YOLO PREDICTION
+            # =============================================
 
             result = model.predict(
                 source=frame,
@@ -260,13 +269,11 @@ if uploaded_file is not None:
                 verbose=False
             )[0]
 
+            # =============================================
+            # CHECK OVERFLOW
+            # =============================================
 
             frame_has_overflow = False
-
-
-            # =================================
-            # CHECK OVERFLOW
-            # =================================
 
             if result.boxes is not None:
 
@@ -276,16 +283,18 @@ if uploaded_file is not None:
                         int(cls)
                     ]
 
-                    if class_name.lower() == "overflow":
+                    if (
+                        class_name.lower()
+                        == "overflow"
+                    ):
 
                         frame_has_overflow = True
 
                         break
 
-
-            # =================================
+            # =============================================
             # CONSECUTIVE FRAME LOGIC
-            # =================================
+            # =============================================
 
             if frame_has_overflow:
 
@@ -295,7 +304,6 @@ if uploaded_file is not None:
 
                 consecutive_overflow = 0
 
-
             if (
                 consecutive_overflow
                 >= required_consecutive_frames
@@ -303,37 +311,62 @@ if uploaded_file is not None:
 
                 overflow_found = True
 
-
-            # =================================
-            # DRAW PREDICTIONS
-            # =================================
+            # =============================================
+            # DRAW YOLO PREDICTIONS
+            # =============================================
 
             annotated_frame = result.plot()
+
+            # =============================================
+            # SAFETY: MAINTAIN OUTPUT SIZE
+            # =============================================
+
+            if (
+                annotated_frame.shape[1]
+                != output_width
+                or
+                annotated_frame.shape[0]
+                != output_height
+            ):
+
+                annotated_frame = cv2.resize(
+                    annotated_frame,
+                    (
+                        output_width,
+                        output_height
+                    ),
+                    interpolation=cv2.INTER_AREA
+                )
+
+            # =============================================
+            # WRITE FRAME
+            # =============================================
 
             writer.write(
                 annotated_frame
             )
 
-
-            # =================================
+            # =============================================
             # UPDATE PROGRESS
-            # =================================
+            # =============================================
 
             if total_frames > 0:
 
-                progress_value = min(
-                    frame_count / total_frames,
-                    1.0
+                progress_value = (
+                    frame_count
+                    / total_frames
                 )
 
                 progress.progress(
-                    progress_value
+                    min(
+                        progress_value,
+                        1.0
+                    )
                 )
 
-
-        # ==================================
-        # RELEASE VIDEO RESOURCES
-        # ==================================
+        # =================================================
+        # RELEASE RESOURCES
+        # =================================================
 
         cap.release()
 
@@ -343,26 +376,32 @@ if uploaded_file is not None:
 
         gc.collect()
 
-
-        # ==================================
-        # CONVERT TO H264 MP4
-        # ==================================
+        # =================================================
+        # CONVERT OUTPUT TO H.264 MP4
+        # =================================================
 
         st.info(
             "Preparing browser-compatible video..."
         )
 
-
-        browser_video = output_path.replace(
-            ".mp4",
-            "_browser.mp4"
+        browser_video = tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=".mp4"
         )
 
+        browser_video_path = (
+            browser_video.name
+        )
+
+        browser_video.close()
 
         ffmpeg_path = (
             imageio_ffmpeg.get_ffmpeg_exe()
         )
 
+        # =================================================
+        # FFMPEG COMMAND
+        # =================================================
 
         command = [
 
@@ -373,76 +412,100 @@ if uploaded_file is not None:
             "-i",
             output_path,
 
+            # Video codec
             "-c:v",
             "libx264",
 
+            # Fast encoding
             "-preset",
             "veryfast",
 
+            # Quality
             "-crf",
-            "28",
+            "23",
 
+            # Browser compatible pixel format
             "-pix_fmt",
             "yuv420p",
 
+            # Preserve original display aspect ratio
+            "-aspect",
+            f"{output_width}:{output_height}",
+
+            # Better browser playback
             "-movflags",
             "+faststart",
 
+            # Remove audio
             "-an",
 
-            browser_video
+            browser_video_path
         ]
 
+        try:
 
-        subprocess.run(
-            command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            check=True
-        )
+            subprocess.run(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=True
+            )
 
+        except subprocess.CalledProcessError:
+
+            st.error(
+                "❌ Video conversion failed."
+            )
+
+            cap.release()
+
+            if os.path.exists(output_path):
+                os.remove(output_path)
+
+            st.stop()
+
+        # =================================================
+        # SUCCESS
+        # =================================================
 
         st.success(
             "✅ Prediction completed!"
         )
 
-
-        # ==================================
+        # =================================================
         # DETECTION RESULT
-        # ==================================
+        # =================================================
 
         st.subheader(
             "📊 Detection Result"
         )
 
-
-        # ----------------------------------
-        # Read browser-compatible video
-        # ----------------------------------
+        # =================================================
+        # READ OUTPUT VIDEO
+        # =================================================
 
         with open(
-            browser_video,
+            browser_video_path,
             "rb"
         ) as video_file:
 
             video_bytes = video_file.read()
 
-
-        # ----------------------------------
-        # Display output video
-        # ----------------------------------
+        # =================================================
+        # DISPLAY OUTPUT VIDEO
+        # =================================================
 
         st.video(
             video_bytes,
             format="video/mp4"
         )
 
-
-        # ==================================
+        # =================================================
         # DOWNLOAD BUTTON
-        # ==================================
+        # =================================================
 
         st.download_button(
+
             label="⬇️ Download Detection Result",
 
             data=video_bytes,
@@ -453,10 +516,13 @@ if uploaded_file is not None:
             mime="video/mp4"
         )
 
+        # =================================================
+        # FINAL RESULT
+        # =================================================
 
-        # ==================================
-        # FINAL OVERFLOW RESULT
-        # ==================================
+        st.subheader(
+            "📢 Detection Status"
+        )
 
         if overflow_found:
 
@@ -475,10 +541,9 @@ if uploaded_file is not None:
                 "🟢 No Overflow Detected"
             )
 
-
-        # ==================================
+        # =================================================
         # CLEAN TEMPORARY FILES
-        # ==================================
+        # =================================================
 
         try:
 
@@ -490,9 +555,9 @@ if uploaded_file is not None:
                 output_path
             )
 
-            os.remove(
-                browser_video
-            )
+            # Don't delete browser_video_path
+            # immediately because Streamlit needs it
+            # for the displayed/downloaded video.
 
         except Exception:
 
