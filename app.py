@@ -770,6 +770,10 @@ if st.session_state.page == "home":
 # PREDICTION PAGE
 # ============================================================
 
+# ============================================================
+# PREDICTION PAGE
+# ============================================================
+
 else:
 
     # ========================================================
@@ -790,26 +794,19 @@ else:
         unsafe_allow_html=True
     )
 
-
     # ========================================================
     # BACK BUTTON
     # ========================================================
 
-    if st.button(
-        "← Back to Home",
-        key="back"
-    ):
+    if st.button("← Back to Home", key="back"):
 
         st.session_state.page = "home"
-
         st.rerun()
-
 
     st.write("")
 
-
     # ========================================================
-    # LOAD YOLO
+    # LOAD YOLO MODEL
     # ========================================================
 
     try:
@@ -818,9 +815,7 @@ else:
 
     except Exception as e:
 
-        st.error(
-            "❌ best.pt model load avvaledu."
-        )
+        st.error("❌ best.pt model load avvaledu.")
 
         st.info(
             "Make sure best.pt is in the same folder as app.py."
@@ -828,20 +823,368 @@ else:
 
         st.stop()
 
+    # ========================================================
+    # HELPER FUNCTION
+    # ========================================================
+
+    def predict_image(image):
+
+        """
+        Predict one image using YOLO.
+        """
+
+        image_np = np.array(image)
+
+        results = model.predict(
+            source=image_np,
+            conf=0.25,
+            verbose=False
+        )
+
+        result = results[0]
+
+        detections = []
+
+        if result.boxes is not None:
+
+            for box in result.boxes:
+
+                class_id = int(box.cls[0])
+                confidence = float(box.conf[0])
+
+                class_name = str(
+                    result.names[class_id]
+                ).lower().strip()
+
+                detections.append({
+                    "class": class_name,
+                    "confidence": confidence
+                })
+
+        return result, detections
+
 
     # ========================================================
-    # ROW 1 - CAMERA
+    # FINAL DECISION FUNCTION
     # ========================================================
+
+    def get_final_prediction(detections):
+
+        """
+        Priority:
+        overclass > normal
+
+        Only a sufficiently confident overclass
+        will trigger overflow.
+        """
+
+        over_detections = [
+            d for d in detections
+            if d["class"] == "overclass"
+            and d["confidence"] >= 0.40
+        ]
+
+        normal_detections = [
+            d for d in detections
+            if d["class"] == "normal"
+        ]
+
+        # Overflow has priority
+        if len(over_detections) > 0:
+
+            best = max(
+                over_detections,
+                key=lambda x: x["confidence"]
+            )
+
+            return (
+                "GARBAGE OVERFLOW",
+                best["confidence"]
+            )
+
+        # Normal
+        if len(normal_detections) > 0:
+
+            best = max(
+                normal_detections,
+                key=lambda x: x["confidence"]
+            )
+
+            return (
+                "NORMAL",
+                best["confidence"]
+            )
+
+        # Nothing detected
+        return (
+            "NO CLEAR DETECTION",
+            0.0
+        )
+
+
+    # ========================================================
+    # DISPLAY RESULT
+    # ========================================================
+
+    def display_prediction(
+        result,
+        detections,
+        title="Prediction Result"
+    ):
+
+        st.markdown(
+            f'<div class="detection-box-title">'
+            f'{title}'
+            f'</div>',
+            unsafe_allow_html=True
+        )
+
+        # Annotated image
+        annotated = result.plot()
+
+        st.image(
+            annotated,
+            use_container_width=True
+        )
+
+        # Final prediction
+        status, confidence = get_final_prediction(
+            detections
+        )
+
+        st.write("")
+
+        # ----------------------------------------------------
+        # OVERFLOW
+        # ----------------------------------------------------
+
+        if status == "GARBAGE OVERFLOW":
+
+            st.markdown(
+                f"""
+                <div class="alert-box">
+
+                <h3>🚨 Garbage Overflow Detected</h3>
+
+                <b>Detection:</b> overclass<br><br>
+
+                <b>Confidence:</b>
+                {confidence * 100:.2f}%<br><br>
+
+                <b>📍 Location:</b>
+                {get_location()}<br><br>
+
+                <b>🕒 Date & Time:</b>
+                {get_current_time()}<br><br>
+
+                <b>⚠️ Status:</b>
+                Violation Detected
+
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+            # Send email only once
+            generate_alert()
+
+        # ----------------------------------------------------
+        # NORMAL
+        # ----------------------------------------------------
+
+        elif status == "NORMAL":
+
+            st.markdown(
+                f"""
+                <div class="normal-box">
+
+                <h3>✅ No Garbage Overflow Detected</h3>
+
+                <b>Detection:</b> normal<br><br>
+
+                <b>Confidence:</b>
+                {confidence * 100:.2f}%<br><br>
+
+                <b>Status:</b>
+                Normal
+
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+        # ----------------------------------------------------
+        # NO DETECTION
+        # ----------------------------------------------------
+
+        else:
+
+            st.warning(
+                "⚠️ No clear garbage condition detected. "
+                "Please try another image/video."
+            )
+
+        # ----------------------------------------------------
+        # DETECTION DETAILS
+        # ----------------------------------------------------
+
+        if len(detections) > 0:
+
+            st.write("")
+
+            st.markdown(
+                "**Detection Details**"
+            )
+
+            for detection in detections:
+
+                class_name = detection["class"]
+                conf = detection["confidence"]
+
+                st.write(
+                    f"• {class_name} — "
+                    f"{conf * 100:.2f}%"
+                )
+
+
+    # ========================================================
+    # IMAGE SECTION
+    # ========================================================
+
+    st.markdown(
+        '<div class="detection-box-title">'
+        '🖼️ Image Detection'
+        '</div>',
+        unsafe_allow_html=True
+    )
+
+    image_upload_col, image_input_col, image_output_col = st.columns(
+        3,
+        gap="medium"
+    )
+
+    # ========================================================
+    # IMAGE UPLOAD
+    # ========================================================
+
+    with image_upload_col:
+
+        with st.container(border=True):
+
+            st.markdown(
+                '<div class="detection-box-title">'
+                'Upload Image'
+                '</div>',
+                unsafe_allow_html=True
+            )
+
+            uploaded_image = st.file_uploader(
+                "Choose image",
+                type=[
+                    "jpg",
+                    "jpeg",
+                    "png"
+                ],
+                key="image_upload"
+            )
+
+    # ========================================================
+    # IMAGE INPUT
+    # ========================================================
+
+    with image_input_col:
+
+        with st.container(border=True):
+
+            st.markdown(
+                '<div class="detection-box-title">'
+                'Input'
+                '</div>',
+                unsafe_allow_html=True
+            )
+
+            if uploaded_image:
+
+                input_image = Image.open(
+                    uploaded_image
+                ).convert("RGB")
+
+                st.image(
+                    input_image,
+                    use_container_width=True
+                )
+
+            else:
+
+                st.info(
+                    "Upload an image to start prediction."
+                )
+
+    # ========================================================
+    # IMAGE OUTPUT
+    # ========================================================
+
+    with image_output_col:
+
+        with st.container(border=True):
+
+            st.markdown(
+                '<div class="detection-box-title">'
+                'Output'
+                '</div>',
+                unsafe_allow_html=True
+            )
+
+            if uploaded_image:
+
+                if st.button(
+                    "🔍 Detect",
+                    key="detect_image",
+                    use_container_width=True
+                ):
+
+                    with st.spinner(
+                        "AI is analyzing the image..."
+                    ):
+
+                        result, detections = predict_image(
+                            input_image
+                        )
+
+                    display_prediction(
+                        result,
+                        detections,
+                        "Prediction Result"
+                    )
+
+            else:
+
+                st.info(
+                    "Prediction output will appear here."
+                )
+
+
+    # ========================================================
+    # CAMERA SECTION
+    # ========================================================
+
+    st.write("")
+
+    st.markdown(
+        '<div class="detection-box-title">'
+        '📷 Camera Detection'
+        '</div>',
+        unsafe_allow_html=True
+    )
 
     camera_col, camera_input_col, camera_output_col = st.columns(
         3,
         gap="medium"
     )
 
-
-    # --------------------------------------------------------
-    # CAMERA BOX
-    # --------------------------------------------------------
+    # ========================================================
+    # CAMERA
+    # ========================================================
 
     with camera_col:
 
@@ -859,10 +1202,9 @@ else:
                 key="camera"
             )
 
-
-    # --------------------------------------------------------
+    # ========================================================
     # CAMERA INPUT
-    # --------------------------------------------------------
+    # ========================================================
 
     with camera_input_col:
 
@@ -889,13 +1231,12 @@ else:
             else:
 
                 st.info(
-                    "Camera input will appear here."
+                    "Camera image will appear here."
                 )
 
-
-    # --------------------------------------------------------
+    # ========================================================
     # CAMERA OUTPUT
-    # --------------------------------------------------------
+    # ========================================================
 
     with camera_output_col:
 
@@ -912,225 +1253,53 @@ else:
 
                 if st.button(
                     "🔍 Detect",
-                    key="camera_detect"
-                ):
-
-                    with st.spinner(
-                        "Detecting garbage..."
-                    ):
-
-                        camera_result = model.predict(
-                            np.array(camera_pil),
-                            conf=0.30,
-                            verbose=False
-                        )[0]
-
-                    camera_annotated = camera_result.plot()
-
-                    camera_annotated = cv2.cvtColor(
-                        camera_annotated,
-                        cv2.COLOR_BGR2RGB
-                    )
-
-                    st.image(
-                        camera_annotated,
-                        use_container_width=True
-                    )
-
-                    if is_overflow_detected(
-                        camera_result
-                    ):
-
-                        generate_alert()
-
-                    else:
-
-                        st.markdown(
-                            """
-                            <div class="normal-box">
-                            ✅ No Garbage Overflow Detected<br>
-                            Status: Normal
-                            </div>
-                            """,
-                            unsafe_allow_html=True
-                        )
-
-
-            else:
-
-                st.info(
-                    "Detection result will appear here."
-                )
-
-
-    # ========================================================
-    # ROW 2 - IMAGE ALERT
-    # ========================================================
-
-    st.write("")
-    st.write("")
-
-
-    image_upload_col, image_input_col, image_output_col = st.columns(
-        3,
-        gap="medium"
-    )
-
-
-    # --------------------------------------------------------
-    # UPLOAD IMAGE
-    # --------------------------------------------------------
-
-    with image_upload_col:
-
-        with st.container(border=True):
-
-            st.markdown(
-                '<div class="detection-box-title">'
-                'Upload Image'
-                '</div>',
-                unsafe_allow_html=True
-            )
-
-            uploaded_image = st.file_uploader(
-                "Choose image",
-                type=[
-                    "jpg",
-                    "jpeg",
-                    "png"
-                ],
-                key="image_upload"
-            )
-
-
-    # --------------------------------------------------------
-    # IMAGE INPUT
-    # --------------------------------------------------------
-
-    with image_input_col:
-
-        with st.container(border=True):
-
-            st.markdown(
-                '<div class="detection-box-title">'
-                'Input'
-                '</div>',
-                unsafe_allow_html=True
-            )
-
-            if uploaded_image:
-
-                image = Image.open(
-                    uploaded_image
-                ).convert("RGB")
-
-                st.image(
-                    image,
+                    key="detect_camera",
                     use_container_width=True
-                )
-
-            else:
-
-                st.info(
-                    "Uploaded image will appear here."
-                )
-
-
-    # --------------------------------------------------------
-    # IMAGE OUTPUT
-    # --------------------------------------------------------
-
-    with image_output_col:
-
-        with st.container(border=True):
-
-            st.markdown(
-                '<div class="detection-box-title">'
-                'Output'
-                '</div>',
-                unsafe_allow_html=True
-            )
-
-            if uploaded_image:
-
-                if st.button(
-                    "🔍 Detect",
-                    key="image_detect"
                 ):
 
                     with st.spinner(
-                        "Detecting garbage..."
+                        "Analyzing camera image..."
                     ):
 
-                        image_result = model.predict(
-                            np.array(image),
-                            conf=0.30,
-                            verbose=False
-                        )[0]
-
-                    image_annotated = image_result.plot()
-
-                    image_annotated = cv2.cvtColor(
-                        image_annotated,
-                        cv2.COLOR_BGR2RGB
-                    )
-
-                    st.image(
-                        image_annotated,
-                        use_container_width=True
-                    )
-
-                    if is_overflow_detected(
-                        image_result
-                    ):
-
-                        generate_alert()
-
-                    else:
-
-                        st.markdown(
-                            """
-                            <div class="normal-box">
-                            ✅ No Garbage Overflow Detected<br>
-                            Status: Normal
-                            </div>
-                            """,
-                            unsafe_allow_html=True
+                        result, detections = predict_image(
+                            camera_pil
                         )
+
+                    display_prediction(
+                        result,
+                        detections,
+                        "Camera Prediction"
+                    )
 
             else:
 
                 st.info(
-                    "Detection result will appear here."
+                    "Camera prediction will appear here."
                 )
 
 
     # ========================================================
-    # IMAGE ALERT HEADING
+    # VIDEO SECTION
     # ========================================================
+
+    st.write("")
+    st.write("")
 
     st.markdown(
-        "### Alert:"
+        '<div class="detection-box-title">'
+        '🎥 Video / CCTV Detection'
+        '</div>',
+        unsafe_allow_html=True
     )
-
-
-    # ========================================================
-    # ROW 3 - VIDEO ALERT
-    # ========================================================
-
-    st.write("")
-    st.write("")
-
 
     video_upload_col, video_input_col, video_output_col = st.columns(
         3,
         gap="medium"
     )
 
-
-    # --------------------------------------------------------
-    # UPLOAD VIDEO
-    # --------------------------------------------------------
+    # ========================================================
+    # VIDEO UPLOAD
+    # ========================================================
 
     with video_upload_col:
 
@@ -1149,15 +1318,176 @@ else:
                     "mp4",
                     "avi",
                     "mov",
-                    "mkv"
+                    "mkv",
+                    "mpeg"
                 ],
                 key="video_upload"
             )
 
+    # ========================================================
+    # VIDEO PROCESSING FUNCTION
+    # ========================================================
 
-    # --------------------------------------------------------
+    def process_video(video_path):
+
+        cap = cv2.VideoCapture(
+            video_path
+        )
+
+        if not cap.isOpened():
+
+            return None, None, 0
+
+        fps = cap.get(
+            cv2.CAP_PROP_FPS
+        )
+
+        if fps <= 0:
+            fps = 25
+
+        width = int(
+            cap.get(
+                cv2.CAP_PROP_FRAME_WIDTH
+            )
+        )
+
+        height = int(
+            cap.get(
+                cv2.CAP_PROP_FRAME_HEIGHT
+            )
+        )
+
+        total_frames = int(
+            cap.get(
+                cv2.CAP_PROP_FRAME_COUNT
+            )
+        )
+
+        # Process approximately 1 frame per second
+        frame_skip = max(
+            int(fps),
+            1
+        )
+
+        frame_number = 0
+
+        overflow_count = 0
+        normal_count = 0
+        detection_count = 0
+
+        best_frame = None
+        best_overflow_confidence = 0
+
+        progress = st.progress(0)
+
+        while True:
+
+            ret, frame = cap.read()
+
+            if not ret:
+                break
+
+            if frame_number % frame_skip == 0:
+
+                results = model.predict(
+                    source=frame,
+                    conf=0.25,
+                    verbose=False
+                )
+
+                result = results[0]
+
+                detections = []
+
+                if result.boxes is not None:
+
+                    for box in result.boxes:
+
+                        class_id = int(
+                            box.cls[0]
+                        )
+
+                        confidence = float(
+                            box.conf[0]
+                        )
+
+                        class_name = str(
+                            result.names[class_id]
+                        ).lower().strip()
+
+                        detections.append({
+                            "class": class_name,
+                            "confidence": confidence
+                        })
+
+                status, confidence = get_final_prediction(
+                    detections
+                )
+
+                if status == "GARBAGE OVERFLOW":
+
+                    overflow_count += 1
+                    detection_count += 1
+
+                    if confidence > best_overflow_confidence:
+
+                        best_overflow_confidence = confidence
+
+                        best_frame = result.plot()
+
+                elif status == "NORMAL":
+
+                    normal_count += 1
+                    detection_count += 1
+
+            frame_number += 1
+
+            if total_frames > 0:
+
+                progress.progress(
+                    min(
+                        frame_number / total_frames,
+                        1.0
+                    )
+                )
+
+        cap.release()
+
+        progress.empty()
+
+        # ====================================================
+        # FINAL VIDEO DECISION
+        # ====================================================
+
+        if detection_count == 0:
+
+            return (
+                "NO CLEAR DETECTION",
+                best_frame,
+                0
+            )
+
+        # Majority based decision
+        if overflow_count > normal_count:
+
+            return (
+                "GARBAGE OVERFLOW",
+                best_frame,
+                best_overflow_confidence
+            )
+
+        else:
+
+            return (
+                "NORMAL",
+                None,
+                0
+            )
+
+
+    # ========================================================
     # VIDEO INPUT
-    # --------------------------------------------------------
+    # ========================================================
 
     with video_input_col:
 
@@ -1172,22 +1502,20 @@ else:
 
             if uploaded_video:
 
-                video_bytes = uploaded_video.getvalue()
-
                 st.video(
-                    video_bytes
+                    uploaded_video
                 )
 
             else:
 
                 st.info(
-                    "Uploaded video will appear here."
+                    "Upload a CCTV/video file."
                 )
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # VIDEO OUTPUT
-    # --------------------------------------------------------
+    # ========================================================
 
     with video_output_col:
 
@@ -1203,166 +1531,57 @@ else:
             if uploaded_video:
 
                 if st.button(
-                    "🎥 Detect",
-                    key="video_detect"
+                    "🎥 Analyze Video",
+                    key="detect_video",
+                    use_container_width=True
                 ):
 
-                    with st.spinner(
-                        "Processing video..."
-                    ):
-
-                        input_file = tempfile.NamedTemporaryFile(
-                            delete=False,
-                            suffix=".mp4"
-                        )
-
-                        input_file.write(
-                            uploaded_video.getbuffer()
-                        )
-
-                        input_file.close()
-
-
-                        cap = cv2.VideoCapture(
-                            input_file.name
-                        )
-
-
-                        fps = cap.get(
-                            cv2.CAP_PROP_FPS
-                        )
-
-                        if fps <= 0:
-                            fps = 20
-
-
-                        width = int(
-                            cap.get(
-                                cv2.CAP_PROP_FRAME_WIDTH
-                            )
-                        )
-
-                        height = int(
-                            cap.get(
-                                cv2.CAP_PROP_FRAME_HEIGHT
-                            )
-                        )
-
-
-                        output_file = tempfile.NamedTemporaryFile(
-                            delete=False,
-                            suffix=".mp4"
-                        )
-
-                        output_path = output_file.name
-
-                        output_file.close()
-
-
-                        fourcc = cv2.VideoWriter_fourcc(
-                            *"mp4v"
-                        )
-
-
-                        writer = cv2.VideoWriter(
-                            output_path,
-                            fourcc,
-                            fps,
-                            (width, height)
-                        )
-
-
-                        overflow_found = False
-
-                        frame_count = 0
-
-
-                        while True:
-
-                            ret, frame = cap.read()
-
-                            if not ret:
-                                break
-
-
-                            frame_count += 1
-
-
-                            result = model.predict(
-                                frame,
-                                conf=0.30,
-                                verbose=False
-                            )[0]
-
-
-                            if is_overflow_detected(
-                                result
-                            ):
-
-                                overflow_found = True
-
-
-                            annotated = result.plot()
-
-
-                            writer.write(
-                                annotated
-                            )
-
-
-                        cap.release()
-
-                        writer.release()
-
-                        try:
-                            os.remove(
-                                input_file.name
-                            )
-                        except:
-                            pass
-
-
-                    st.success(
-                        "✅ Video processing completed."
+                    # Save uploaded video
+                    temp_video = tempfile.NamedTemporaryFile(
+                        delete=False,
+                        suffix=".mp4"
                     )
 
-
-                    st.video(
-                        output_path
+                    temp_video.write(
+                        uploaded_video.read()
                     )
 
+                    temp_video.close()
 
-                    # ------------------------------------------------
-                    # VIDEO ALERT
-                    # ------------------------------------------------
+                    try:
 
-                    if overflow_found:
+                        with st.spinner(
+                            "AI is analyzing CCTV video..."
+                        ):
 
-                        generate_alert()
+                            video_status, best_frame, video_conf = process_video(
+                                temp_video.name
+                            )
 
-                    else:
+                        # ------------------------------------
+                        # OVERFLOW
+                        # ------------------------------------
 
-                        st.markdown(
-                            """
-                            <div class="normal-box">
-                            ✅ No Garbage Overflow Detected<br>
-                            Status: Normal
-                            </div>
-                            """,
-                            unsafe_allow_html=True
-                        )
+                        if video_status == "GARBAGE OVERFLOW":
 
-            else:
+                            if best_frame is not None:
 
-                st.info(
-                    "Processed video will appear here."
-                )
+                                st.image(
+                                    best_frame,
+                                    caption="Detected Overflow Frame",
+                                    use_container_width=True
+                                )
 
+                            st.markdown(
+                                f"""
+                                <div class="alert-box">
 
-    # ========================================================
-    # VIDEO ALERT HEADING
-    # ========================================================
+                                <h3>🚨 Garbage Overflow Detected</h3>
 
-    st.markdown(
-        "### Alert:"
-    )
+                                <b>Detection:</b> overclass<br><br>
+
+                                <b>Confidence:</b>
+                                {video_conf * 100:.2f}%<br><br>
+
+                                <b>📍 Location:</b>
+                                {get_location()}<br><br>
