@@ -252,7 +252,22 @@ if uploaded_file is not None:
 
         st.subheader("📊 Detection Result")
 
-        st.video(output_path)
+        if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
+
+    with open(output_path, "rb") as video_file:
+        video_bytes = video_file.read()
+
+    st.video(video_bytes, format="video/mp4")
+
+    st.download_button(
+        label="⬇️ Download Detection Result",
+        data=video_bytes,
+        file_name="garbage_detection_result.mp4",
+        mime="video/mp4"
+    )
+
+else:
+    st.error("❌ Output video was not generated.")
 
         # -----------------------------
         # Download Result
