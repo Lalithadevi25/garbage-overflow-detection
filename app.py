@@ -1,22 +1,21 @@
 import streamlit as st
 from ultralytics import YOLO
 from PIL import Image
-import cv2
 import numpy as np
+import cv2
 import tempfile
 import os
 from datetime import datetime
 
 
 # ============================================================
-# PAGE CONFIGURATION
+# PAGE CONFIG
 # ============================================================
 
 st.set_page_config(
     page_title="EcoBin AI",
     page_icon="🗑️",
-    layout="wide",
-    initial_sidebar_state="collapsed"
+    layout="wide"
 )
 
 
@@ -61,24 +60,12 @@ model = load_model()
 
 
 # ============================================================
-# GLOBAL CSS
+# CSS
 # ============================================================
 
 st.markdown(
     """
     <style>
-
-    /* ======================================================
-       GENERAL STREAMLIT
-       ====================================================== */
-
-    .block-container {
-        max-width: 100%;
-        padding-top: 1rem;
-        padding-bottom: 2rem;
-        padding-left: 1.2rem;
-        padding-right: 1.2rem;
-    }
 
     #MainMenu {
         visibility: hidden;
@@ -88,24 +75,29 @@ st.markdown(
         visibility: hidden;
     }
 
-
-    /* ======================================================
-       PAGE 1 - HOME
-       ====================================================== */
-
-    .home-container {
-        width: 100%;
-        border: 3px solid #111111;
-        background: white;
-        color: #111111;
-        box-sizing: border-box;
+    .block-container {
+        max-width: 100%;
+        padding-top: 1rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+        padding-bottom: 2rem;
     }
 
 
-    .home-header {
+    /* ========================================================
+       PAGE 1
+       ======================================================== */
+
+    .home-box {
         width: 100%;
-        min-height: 125px;
-        border-bottom: 3px solid #111111;
+        border: 3px solid black;
+        background: white;
+        color: black;
+    }
+
+    .home-header {
+        height: 125px;
+        border-bottom: 3px solid black;
 
         display: flex;
         flex-direction: column;
@@ -113,114 +105,88 @@ st.markdown(
         align-items: center;
 
         text-align: center;
-        box-sizing: border-box;
     }
 
-
-    .home-header-title {
+    .home-title {
         font-size: 42px;
         font-weight: 800;
         letter-spacing: 2px;
     }
 
-
-    .home-header-subtitle {
+    .home-subtitle {
         font-size: 20px;
         font-weight: 600;
         margin-top: 8px;
     }
 
-
-    .home-body {
+    .home-main {
         display: grid;
         grid-template-columns: 37% 63%;
-        width: 100%;
-        min-height: 650px;
+        min-height: 680px;
     }
-
 
     .home-left {
-        border-right: 3px solid #111111;
-        padding: 50px 30px;
+        border-right: 3px solid black;
         text-align: center;
-        box-sizing: border-box;
+        padding-top: 110px;
     }
 
-
-    .aicw-text {
+    .aicw {
         font-size: 28px;
         font-weight: 700;
-        line-height: 1.4;
-        margin-top: 80px;
+        line-height: 1.5;
     }
 
-
-    .project-text {
+    .capstone {
         font-size: 23px;
         font-weight: 600;
         margin-top: 35px;
     }
 
-
     .home-right {
         display: grid;
-        grid-template-rows: 100px 300px 1fr;
-        min-width: 0;
+        grid-template-rows: 90px 340px 1fr;
     }
 
-
-    .title-area {
-        border-bottom: 3px solid #111111;
-        padding: 25px;
-        box-sizing: border-box;
+    .title-section {
+        border-bottom: 3px solid black;
+        padding: 20px 25px;
     }
 
-
-    .title-area h2 {
+    .title-section h2 {
         margin: 0;
-        font-size: 28px;
+        font-size: 27px;
     }
 
-
-    .description-area {
-        border-bottom: 3px solid #111111;
-        padding: 25px;
-        box-sizing: border-box;
+    .description-section {
+        border-bottom: 3px solid black;
+        padding: 20px 25px;
     }
 
-
-    .description-area h2 {
-        margin-top: 0;
+    .description-section h2 {
+        margin: 0 0 15px 0;
         font-size: 24px;
     }
 
-
-    .description-text {
+    .description {
         font-size: 16px;
-        line-height: 1.7;
+        line-height: 1.65;
         text-align: justify;
     }
 
-
-    .bottom-area {
+    .bottom-section {
         display: grid;
         grid-template-columns: 60% 40%;
-        min-height: 250px;
     }
 
-
-    .team-area {
-        border-right: 3px solid #111111;
+    .team-section {
+        border-right: 3px solid black;
         padding: 25px;
-        box-sizing: border-box;
     }
 
-
-    .guide-area {
+    .guide-section {
         padding: 25px;
-        box-sizing: border-box;
     }
-
 
     .section-heading {
         font-size: 22px;
@@ -228,151 +194,127 @@ st.markdown(
         margin-bottom: 20px;
     }
 
-
-    .team-member {
+    .member {
         font-size: 16px;
         margin-bottom: 14px;
     }
 
-
     .guide-name {
         font-size: 18px;
         font-weight: 700;
-        margin-top: 15px;
+        margin-bottom: 8px;
     }
-
 
     .guide-designation {
         font-size: 16px;
-        margin-top: 8px;
     }
 
 
-    /* ======================================================
-       PAGE 2 HEADER
-       ====================================================== */
+    /* ========================================================
+       PAGE 2
+       ======================================================== */
 
     .page2-header {
         width: 100%;
-        border: 3px solid #111111;
-        padding: 18px;
+        border: 3px solid black;
         text-align: center;
+        padding: 18px;
         box-sizing: border-box;
-        margin-bottom: 15px;
     }
-
 
     .page2-header h1 {
         margin: 0;
-        font-size: 34px;
+        font-size: 36px;
         font-weight: 800;
     }
 
-
     .page2-header p {
-        margin: 7px 0 0 0;
-        font-size: 18px;
+        margin: 8px 0 0 0;
+        font-size: 19px;
         font-weight: 600;
     }
 
 
-    /* ======================================================
-       DETECTION BOXES
-       ====================================================== */
-
-    .detection-box {
-        border: 3px solid #111111;
-        min-height: 300px;
+    .box {
+        border: 3px solid black;
         padding: 15px;
-        box-sizing: border-box;
+        min-height: 300px;
         background: white;
-        color: #111111;
+        color: black;
     }
 
-
-    .detection-heading {
+    .box-heading {
         text-align: center;
         font-size: 22px;
         font-weight: 800;
-
-        border-bottom: 2px solid #111111;
-
+        border-bottom: 2px solid black;
         padding-bottom: 10px;
         margin-bottom: 15px;
     }
 
 
-    /* ======================================================
+    /* ========================================================
        ALERT
-       ====================================================== */
+       ======================================================== */
 
-    .alert-box {
+    .alert-message {
         border: 3px solid #b00020;
-
-        padding: 18px;
-        margin-top: 20px;
-        margin-bottom: 20px;
-
-        background: #fff5f5;
+        background: #fff4f4;
         color: #8b0000;
-
-        font-size: 16px;
-        font-weight: 700;
-    }
-
-
-    /* ======================================================
-       SAFE MESSAGE
-       ====================================================== */
-
-    .safe-box {
-        border: 3px solid #168516;
-
-        padding: 18px;
+        padding: 20px;
         margin-top: 20px;
         margin-bottom: 20px;
-
-        background: #f3fff3;
-        color: #146b14;
-
-        font-size: 16px;
+        font-size: 17px;
         font-weight: 700;
     }
 
 
-    /* ======================================================
-       MOBILE
-       ====================================================== */
+    /* ========================================================
+       NORMAL
+       ======================================================== */
+
+    .normal-message {
+        border: 3px solid green;
+        background: #f3fff3;
+        color: green;
+        padding: 20px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+        font-size: 17px;
+        font-weight: 700;
+    }
+
 
     @media (max-width: 800px) {
 
-        .home-body {
+        .home-main {
             grid-template-columns: 1fr;
         }
 
         .home-left {
             border-right: none;
-            border-bottom: 3px solid #111111;
+            border-bottom: 3px solid black;
+            padding-bottom: 40px;
         }
 
         .home-right {
             grid-template-rows: auto auto auto;
         }
 
-        .bottom-area {
+        .bottom-section {
             grid-template-columns: 1fr;
         }
 
-        .team-area {
+        .team-section {
             border-right: none;
-            border-bottom: 3px solid #111111;
+            border-bottom: 3px solid black;
         }
 
-        .home-header-title {
+        .home-title {
             font-size: 32px;
         }
 
-        .home-header-subtitle {
+        .home-subtitle {
             font-size: 16px;
         }
     }
@@ -384,10 +326,10 @@ st.markdown(
 
 
 # ============================================================
-# CURRENT DATE & TIME
+# TIME
 # ============================================================
 
-def get_current_datetime():
+def current_time():
 
     return datetime.now().strftime(
         "%d-%m-%Y %I:%M:%S %p"
@@ -395,35 +337,10 @@ def get_current_datetime():
 
 
 # ============================================================
-# CREATE ALERT
+# OVERFLOW CHECK
 # ============================================================
 
-def create_alert():
-
-    st.session_state.alert = {
-        "location": st.session_state.location,
-        "time": get_current_datetime(),
-        "status": "Garbage Overflow Detected"
-    }
-
-
-# ============================================================
-# CLEAR ALERT
-# ============================================================
-
-def clear_alert():
-
-    st.session_state.alert = None
-
-
-# ============================================================
-# CHECK OVERFLOW
-# ============================================================
-
-def check_overflow(result):
-
-    if model is None:
-        return False
+def is_overflow(result):
 
     if result.boxes is None:
         return False
@@ -435,15 +352,74 @@ def check_overflow(result):
 
         class_id = int(box.cls[0])
 
-        class_name = model.names[class_id]
-
-        class_name = str(class_name).lower().strip()
+        class_name = str(
+            model.names[class_id]
+        ).lower().strip()
 
         if class_name == OVERFLOW_CLASS:
-
             return True
 
     return False
+
+
+# ============================================================
+# ALERT
+# ============================================================
+
+def set_alert():
+
+    st.session_state.alert = {
+        "location": st.session_state.location,
+        "time": current_time(),
+        "status": "Garbage Overflow Detected"
+    }
+
+
+def clear_alert():
+
+    st.session_state.alert = None
+
+
+# ============================================================
+# SHOW ALERT
+# ============================================================
+
+def show_alert():
+
+    if st.session_state.alert is None:
+        return
+
+    alert = st.session_state.alert
+
+    st.markdown(
+        f"""
+        <div class="alert-message">
+
+            🚨 ALERT MESSAGE
+
+            <br><br>
+
+            <b>Garbage Overflow Detected!</b>
+
+            <br><br>
+
+            📍 Location:
+            {alert["location"]}
+
+            <br><br>
+
+            🕒 Date & Time:
+            {alert["time"]}
+
+            <br><br>
+
+            ⚠️ Status:
+            {alert["status"]}
+
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 
 # ============================================================
@@ -455,15 +431,13 @@ def detect_image(image):
     if model is None:
 
         st.error(
-            "best.pt was not found. "
-            "Place best.pt in the same folder as app.py."
+            "best.pt file not found. "
+            "Please keep best.pt in the same folder as app.py."
         )
 
         return None, False
 
-
     image_array = np.array(image)
-
 
     results = model.predict(
         source=image_array,
@@ -471,37 +445,31 @@ def detect_image(image):
         verbose=False
     )
 
-
     result = results[0]
 
+    output = result.plot()
 
-    annotated_image = result.plot()
+    overflow = is_overflow(result)
 
-
-    violation = check_overflow(result)
-
-
-    return annotated_image, violation
+    return output, overflow
 
 
 # ============================================================
-# VIDEO DETECTION
+# VIDEO PROCESSING
 # ============================================================
 
-def process_video(video_file):
+def detect_video(video_file):
 
     if model is None:
 
         st.error(
-            "best.pt was not found."
+            "best.pt file not found."
         )
 
         return None, False
 
-
     input_path = None
     output_path = None
-
 
     try:
 
@@ -509,36 +477,26 @@ def process_video(video_file):
             video_file.name
         )[1]
 
-
-        # ----------------------------------------------------
-        # SAVE INPUT VIDEO
-        # ----------------------------------------------------
-
         with tempfile.NamedTemporaryFile(
             delete=False,
             suffix=extension
-        ) as temp_input:
+        ) as temp:
 
-            temp_input.write(
+            temp.write(
                 video_file.read()
             )
 
-            input_path = temp_input.name
+            input_path = temp.name
 
-
-        # ----------------------------------------------------
-        # OPEN VIDEO
-        # ----------------------------------------------------
 
         cap = cv2.VideoCapture(
             input_path
         )
 
-
         if not cap.isOpened():
 
             st.error(
-                "Unable to open the uploaded video."
+                "Could not open video."
             )
 
             return None, False
@@ -547,7 +505,6 @@ def process_video(video_file):
         fps = cap.get(
             cv2.CAP_PROP_FPS
         )
-
 
         if fps <= 0:
             fps = 25
@@ -559,13 +516,11 @@ def process_video(video_file):
             )
         )
 
-
         height = int(
             cap.get(
                 cv2.CAP_PROP_FRAME_HEIGHT
             )
         )
-
 
         total_frames = int(
             cap.get(
@@ -574,26 +529,19 @@ def process_video(video_file):
         )
 
 
-        # ----------------------------------------------------
-        # OUTPUT FILE
-        # ----------------------------------------------------
-
-        output_file = tempfile.NamedTemporaryFile(
+        output_temp = tempfile.NamedTemporaryFile(
             delete=False,
             suffix=".mp4"
         )
 
+        output_path = output_temp.name
 
-        output_path = output_file.name
-
-
-        output_file.close()
+        output_temp.close()
 
 
         fourcc = cv2.VideoWriter_fourcc(
             *"mp4v"
         )
-
 
         writer = cv2.VideoWriter(
             output_path,
@@ -603,23 +551,16 @@ def process_video(video_file):
         )
 
 
-        violation_detected = False
+        overflow_detected = False
 
-
-        frame_number = 0
-
+        frame_count = 0
 
         progress = st.progress(0)
 
 
-        # ----------------------------------------------------
-        # FRAME BY FRAME DETECTION
-        # ----------------------------------------------------
-
         while True:
 
             success, frame = cap.read()
-
 
             if not success:
                 break
@@ -631,31 +572,28 @@ def process_video(video_file):
                 verbose=False
             )
 
-
             result = results[0]
 
 
-            if check_overflow(result):
+            if is_overflow(result):
 
-                violation_detected = True
+                overflow_detected = True
 
 
-            annotated_frame = result.plot()
-
+            output_frame = result.plot()
 
             writer.write(
-                annotated_frame
+                output_frame
             )
 
 
-            frame_number += 1
-
+            frame_count += 1
 
             if total_frames > 0:
 
                 progress.progress(
                     min(
-                        frame_number / total_frames,
+                        frame_count / total_frames,
                         1.0
                     )
                 )
@@ -668,16 +606,13 @@ def process_video(video_file):
         progress.empty()
 
 
-        return (
-            output_path,
-            violation_detected
-        )
+        return output_path, overflow_detected
 
 
-    except Exception as error:
+    except Exception as e:
 
         st.error(
-            f"Video processing error: {error}"
+            f"Video processing error: {e}"
         )
 
         return None, False
@@ -691,125 +626,59 @@ def process_video(video_file):
         ):
 
             try:
-
-                os.remove(
-                    input_path
-                )
-
-            except Exception:
+                os.remove(input_path)
+            except:
                 pass
-
-
-# ============================================================
-# DISPLAY ALERT
-# ============================================================
-
-def display_alert():
-
-    if st.session_state.alert is None:
-        return
-
-
-    alert = st.session_state.alert
-
-
-    st.markdown(
-        f"""
-        <div class="alert-box">
-
-            🚨 ALERT MESSAGE
-
-            <br><br>
-
-            <b>Garbage Overflow Detected!</b>
-
-            <br><br>
-
-            📍 Location:
-            {alert["location"]}
-
-            <br>
-
-            🕒 Date & Time:
-            {alert["time"]}
-
-            <br>
-
-            ⚠️ Status:
-            {alert["status"]}
-
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
 
 
 # ============================================================
 # PAGE 1
 # ============================================================
 
-def page_one():
-
-    # --------------------------------------------------------
-    # EXACT HOME UI
-    # --------------------------------------------------------
+def home_page():
 
     st.markdown(
         """
-        <div class="home-container">
-
-            <!-- HEADER -->
+        <div class="home-box">
 
             <div class="home-header">
 
-                <div class="home-header-title">
+                <div class="home-title">
                     ECOBIN AI
                 </div>
 
-                <div class="home-header-subtitle">
+                <div class="home-subtitle">
                     Smart Garbage Overflow Detection System
                 </div>
 
             </div>
 
 
-            <!-- MAIN BODY -->
+            <div class="home-main">
 
-            <div class="home-body">
-
-
-                <!-- LEFT SIDE -->
 
                 <div class="home-left">
 
-                    <div class="aicw-text">
+                    <div class="aicw">
 
                         AI Career for Women
                         <br>
-
                         (AICW)
 
                     </div>
 
 
-                    <div class="project-text">
-
+                    <div class="capstone">
                         Capstone Project
-
                     </div>
-
 
                 </div>
 
 
-                <!-- RIGHT SIDE -->
-
                 <div class="home-right">
 
 
-                    <!-- TITLE -->
-
-                    <div class="title-area">
+                    <div class="title-section">
 
                         <h2>
                             TITLE
@@ -818,16 +687,13 @@ def page_one():
                     </div>
 
 
-                    <!-- DESCRIPTION -->
-
-                    <div class="description-area">
+                    <div class="description-section">
 
                         <h2>
                             DESCRIPTION
                         </h2>
 
-
-                        <div class="description-text">
+                        <div class="description">
 
                             EcoBin AI is an intelligent Smart Garbage
                             Overflow Detection System designed to identify
@@ -850,55 +716,43 @@ def page_one():
                     </div>
 
 
-                    <!-- TEAM + GUIDE -->
-
-                    <div class="bottom-area">
+                    <div class="bottom-section">
 
 
-                        <!-- TEAM MEMBERS -->
-
-                        <div class="team-area">
+                        <div class="team-section">
 
                             <div class="section-heading">
                                 TEAM MEMBERS
                             </div>
 
-
-                            <div class="team-member">
+                            <div class="member">
                                 1. Member Name — member1@email.com
                             </div>
 
-
-                            <div class="team-member">
+                            <div class="member">
                                 2. Member Name — member2@email.com
                             </div>
 
-
-                            <div class="team-member">
+                            <div class="member">
                                 3. Member Name — member3@email.com
                             </div>
 
-
-                            <div class="team-member">
+                            <div class="member">
                                 4. Member Name — member4@email.com
                             </div>
 
                         </div>
 
 
-                        <!-- GUIDE -->
-
-                        <div class="guide-area">
+                        <div class="guide-section">
 
                             <div class="section-heading">
                                 GUIDE
                             </div>
 
-
                             <div class="guide-name">
                                 Guide Name
                             </div>
-
 
                             <div class="guide-designation">
                                 Guide Designation
@@ -919,26 +773,20 @@ def page_one():
     )
 
 
-    # --------------------------------------------------------
-    # PREDICT BUTTON
-    # --------------------------------------------------------
-
-    st.markdown(
-        "<br>",
-        unsafe_allow_html=True
-    )
+    st.write("")
 
 
-    col1, col2, col3 = st.columns(
+    # PREDICT button
+    # Positioned below the left side approximately like the reference
+
+    left, middle, right = st.columns(
         [37, 15, 48]
     )
 
-
-    with col1:
+    with left:
 
         if st.button(
             "PREDICT",
-            key="home_predict",
             type="primary",
             use_container_width=True
         ):
@@ -952,11 +800,7 @@ def page_one():
 # PAGE 2
 # ============================================================
 
-def page_two():
-
-    # --------------------------------------------------------
-    # HEADER
-    # --------------------------------------------------------
+def detection_page():
 
     st.markdown(
         """
@@ -976,13 +820,11 @@ def page_two():
     )
 
 
-    # --------------------------------------------------------
-    # BACK TO HOME
-    # --------------------------------------------------------
+    st.write("")
+
 
     if st.button(
-        "⬅️ Back to Home",
-        key="back_home"
+        "⬅️ Back to Home"
     ):
 
         clear_alert()
@@ -1001,95 +843,57 @@ def page_two():
     )
 
 
-    location = st.text_input(
+    st.session_state.location = st.text_input(
         "Enter the garbage-bin / camera location",
-        value=st.session_state.location,
-        key="location_text"
+        value=st.session_state.location
     )
 
 
-    st.session_state.location = location
-
-
-    st.markdown("---")
+    st.divider()
 
 
     # ========================================================
     # CAMERA
     # ========================================================
 
-    st.markdown(
-        "## 📷 Camera"
+    st.header("📷 Camera")
+
+
+    camera1, camera2, camera3 = st.columns(
+        3
     )
 
 
-    camera_col1, camera_col2, camera_col3 = st.columns(
-        3,
-        gap="medium"
-    )
-
-
-    # --------------------------------------------------------
-    # CAMERA - TAKE PHOTO
-    # --------------------------------------------------------
-
-    with camera_col1:
+    with camera1:
 
         st.markdown(
-            """
-            <div class="detection-box">
-
-                <div class="detection-heading">
-                    Camera
-                </div>
-
-            """,
+            '<div class="box"><div class="box-heading">Camera</div>',
             unsafe_allow_html=True
         )
-
 
         camera_photo = st.camera_input(
             "Take Photo",
-            key="take_photo"
+            key="camera_input"
         )
 
-
         st.markdown(
-            "</div>",
+            '</div>',
             unsafe_allow_html=True
         )
 
 
-    # --------------------------------------------------------
-    # CAMERA - INPUT
-    # --------------------------------------------------------
-
-    camera_image = None
-
-
-    if camera_photo is not None:
-
-        camera_image = Image.open(
-            camera_photo
-        )
-
-
-    with camera_col2:
+    with camera2:
 
         st.markdown(
-            """
-            <div class="detection-box">
-
-                <div class="detection-heading">
-                    Input
-                </div>
-
-            """,
+            '<div class="box"><div class="box-heading">Input</div>',
             unsafe_allow_html=True
         )
 
+        if camera_photo:
 
-        if camera_image is not None:
+            camera_image = Image.open(
+                camera_photo
+            )
 
             st.image(
                 camera_image,
@@ -1102,41 +906,28 @@ def page_two():
                 "Take a photo using the camera."
             )
 
-
         st.markdown(
-            "</div>",
+            '</div>',
             unsafe_allow_html=True
         )
 
 
-    # --------------------------------------------------------
-    # CAMERA - OUTPUT
-    # --------------------------------------------------------
-
-    camera_violation = False
-
-
-    with camera_col3:
+    with camera3:
 
         st.markdown(
-            """
-            <div class="detection-box">
-
-                <div class="detection-heading">
-                    Output
-                </div>
-
-            """,
+            '<div class="box"><div class="box-heading">Output</div>',
             unsafe_allow_html=True
         )
 
+        if camera_photo:
 
-        if camera_image is not None:
-
-            camera_output, camera_violation = detect_image(
-                camera_image
+            camera_image = Image.open(
+                camera_photo
             )
 
+            camera_output, camera_overflow = detect_image(
+                camera_image
+            )
 
             if camera_output is not None:
 
@@ -1146,11 +937,17 @@ def page_two():
                     use_container_width=True
                 )
 
+            if camera_overflow:
 
-            if camera_violation:
+                set_alert()
 
-                create_alert()
+            else:
 
+                st.session_state.alert = None
+
+                st.success(
+                    "✅ No Garbage Overflow Detected"
+                )
 
         else:
 
@@ -1158,54 +955,37 @@ def page_two():
                 "Detection output will appear here."
             )
 
-
         st.markdown(
-            "</div>",
+            '</div>',
             unsafe_allow_html=True
         )
 
 
-    if camera_violation:
+    if camera_photo and st.session_state.alert:
 
-        display_alert()
+        show_alert()
 
 
     # ========================================================
     # IMAGE
     # ========================================================
 
-    st.markdown("---")
+    st.divider()
+
+    st.header("🖼️ Image")
 
 
-    st.markdown(
-        "## 🖼️ Image"
+    image1, image2, image3 = st.columns(
+        3
     )
 
 
-    image_col1, image_col2, image_col3 = st.columns(
-        3,
-        gap="medium"
-    )
-
-
-    # --------------------------------------------------------
-    # IMAGE - UPLOAD
-    # --------------------------------------------------------
-
-    with image_col1:
+    with image1:
 
         st.markdown(
-            """
-            <div class="detection-box">
-
-                <div class="detection-heading">
-                    Upload Image
-                </div>
-
-            """,
+            '<div class="box"><div class="box-heading">Upload Image</div>',
             unsafe_allow_html=True
         )
-
 
         uploaded_image = st.file_uploader(
             "Choose Image",
@@ -1215,49 +995,30 @@ def page_two():
                 "png",
                 "webp"
             ],
-            key="upload_image"
+            key="image_upload"
         )
 
-
         st.markdown(
-            "</div>",
+            '</div>',
             unsafe_allow_html=True
         )
 
 
-    # --------------------------------------------------------
-    # IMAGE - INPUT
-    # --------------------------------------------------------
-
-    image_input = None
-
-
-    if uploaded_image is not None:
-
-        image_input = Image.open(
-            uploaded_image
-        )
-
-
-    with image_col2:
+    with image2:
 
         st.markdown(
-            """
-            <div class="detection-box">
-
-                <div class="detection-heading">
-                    Input
-                </div>
-
-            """,
+            '<div class="box"><div class="box-heading">Input</div>',
             unsafe_allow_html=True
         )
 
+        if uploaded_image:
 
-        if image_input is not None:
+            image = Image.open(
+                uploaded_image
+            )
 
             st.image(
-                image_input,
+                image,
                 use_container_width=True
             )
 
@@ -1267,41 +1028,28 @@ def page_two():
                 "Upload an image."
             )
 
-
         st.markdown(
-            "</div>",
+            '</div>',
             unsafe_allow_html=True
         )
 
 
-    # --------------------------------------------------------
-    # IMAGE - OUTPUT
-    # --------------------------------------------------------
-
-    image_violation = False
-
-
-    with image_col3:
+    with image3:
 
         st.markdown(
-            """
-            <div class="detection-box">
-
-                <div class="detection-heading">
-                    Output
-                </div>
-
-            """,
+            '<div class="box"><div class="box-heading">Output</div>',
             unsafe_allow_html=True
         )
 
+        if uploaded_image:
 
-        if image_input is not None:
-
-            image_output, image_violation = detect_image(
-                image_input
+            image = Image.open(
+                uploaded_image
             )
 
+            image_output, image_overflow = detect_image(
+                image
+            )
 
             if image_output is not None:
 
@@ -1311,11 +1059,17 @@ def page_two():
                     use_container_width=True
                 )
 
+            if image_overflow:
 
-            if image_violation:
+                set_alert()
 
-                create_alert()
+            else:
 
+                st.session_state.alert = None
+
+                st.success(
+                    "✅ No Garbage Overflow Detected"
+                )
 
         else:
 
@@ -1323,54 +1077,37 @@ def page_two():
                 "Detection output will appear here."
             )
 
-
         st.markdown(
-            "</div>",
+            '</div>',
             unsafe_allow_html=True
         )
 
 
-    if image_violation:
+    if uploaded_image and st.session_state.alert:
 
-        display_alert()
+        show_alert()
 
 
     # ========================================================
     # VIDEO
     # ========================================================
 
-    st.markdown("---")
+    st.divider()
+
+    st.header("🎥 Video")
 
 
-    st.markdown(
-        "## 🎥 Video"
+    video1, video2, video3 = st.columns(
+        3
     )
 
 
-    video_col1, video_col2, video_col3 = st.columns(
-        3,
-        gap="medium"
-    )
-
-
-    # --------------------------------------------------------
-    # VIDEO - UPLOAD
-    # --------------------------------------------------------
-
-    with video_col1:
+    with video1:
 
         st.markdown(
-            """
-            <div class="detection-box">
-
-                <div class="detection-heading">
-                    Upload Video
-                </div>
-
-            """,
+            '<div class="box"><div class="box-heading">Upload Video</div>',
             unsafe_allow_html=True
         )
-
 
         uploaded_video = st.file_uploader(
             "Choose Video",
@@ -1380,36 +1117,23 @@ def page_two():
                 "mov",
                 "mkv"
             ],
-            key="upload_video"
+            key="video_upload"
         )
 
-
         st.markdown(
-            "</div>",
+            '</div>',
             unsafe_allow_html=True
         )
 
 
-    # --------------------------------------------------------
-    # VIDEO - INPUT
-    # --------------------------------------------------------
-
-    with video_col2:
+    with video2:
 
         st.markdown(
-            """
-            <div class="detection-box">
-
-                <div class="detection-heading">
-                    Input
-                </div>
-
-            """,
+            '<div class="box"><div class="box-heading">Input</div>',
             unsafe_allow_html=True
         )
 
-
-        if uploaded_video is not None:
+        if uploaded_video:
 
             st.video(
                 uploaded_video
@@ -1421,56 +1145,43 @@ def page_two():
                 "Upload a video."
             )
 
-
         st.markdown(
-            "</div>",
+            '</div>',
             unsafe_allow_html=True
         )
 
 
-    # --------------------------------------------------------
-    # VIDEO - OUTPUT
-    # --------------------------------------------------------
-
-    with video_col3:
+    with video3:
 
         st.markdown(
-            """
-            <div class="detection-box">
-
-                <div class="detection-heading">
-                    Output
-                </div>
-
-            """,
+            '<div class="box"><div class="box-heading">Output</div>',
             unsafe_allow_html=True
         )
 
-
-        if uploaded_video is not None:
+        if uploaded_video:
 
             if st.button(
-                "▶️ Detect Overflow",
-                key="video_detect_button"
+                "🔍 Detect Overflow",
+                key="detect_video"
             ):
 
                 with st.spinner(
-                    "Processing video with YOLOv8..."
+                    "Processing video..."
                 ):
 
-                    output_video, video_violation = process_video(
+                    result_video, video_overflow = detect_video(
                         uploaded_video
                     )
 
 
-                if output_video is not None:
+                if result_video:
 
                     with open(
-                        output_video,
+                        result_video,
                         "rb"
-                    ) as video_file:
+                    ) as f:
 
-                        video_bytes = video_file.read()
+                        video_bytes = f.read()
 
 
                     st.video(
@@ -1481,76 +1192,48 @@ def page_two():
                     st.download_button(
                         "⬇️ Download Result",
                         data=video_bytes,
-                        file_name="ecobin_detection.mp4",
-                        mime="video/mp4",
-                        key="download_result"
+                        file_name="ecobin_result.mp4",
+                        mime="video/mp4"
                     )
 
 
-                    if video_violation:
+                    if video_overflow:
 
-                        create_alert()
-
+                        set_alert()
 
                     else:
 
-                        st.markdown(
-                            """
-                            <div class="safe-box">
+                        st.session_state.alert = None
 
-                                ✅ No Garbage Overflow Detected
-
-                                <br><br>
-
-                                Status:
-                                Normal
-
-                            </div>
-                            """,
-                            unsafe_allow_html=True
+                        st.success(
+                            "✅ No Garbage Overflow Detected"
                         )
-
 
         else:
 
             st.info(
-                "Processed video will appear here."
+                "Detection output will appear here."
             )
 
-
         st.markdown(
-            "</div>",
+            '</div>',
             unsafe_allow_html=True
         )
 
 
-    # ========================================================
-    # FINAL ALERT
-    # ========================================================
+    if st.session_state.alert:
 
-    if st.session_state.alert is not None:
-
-        display_alert()
-
-
-        if st.button(
-            "Clear Alert",
-            key="clear_alert_button"
-        ):
-
-            clear_alert()
-
-            st.rerun()
+        show_alert()
 
 
 # ============================================================
-# APPLICATION ROUTING
+# APP ROUTING
 # ============================================================
 
 if st.session_state.page == 1:
 
-    page_one()
+    home_page()
 
 else:
 
-    page_two()
+    detection_page()
