@@ -53,7 +53,7 @@ if uploaded_file is not None:
 
     st.success("✅ Video uploaded successfully!")
 
-    # Save uploaded video directly to disk
+    # Save uploaded video to temporary file
     input_file = tempfile.NamedTemporaryFile(
         delete=False,
         suffix=".mp4"
@@ -73,7 +73,7 @@ if uploaded_file is not None:
     st.video(input_file.name)
 
     # -----------------------------
-    # Predict Button
+    # Detect Button
     # -----------------------------
 
     if st.button("🔍 Detect Garbage Overflow"):
@@ -89,7 +89,7 @@ if uploaded_file is not None:
         output_file.close()
 
         # -----------------------------
-        # Read video
+        # Open Video
         # -----------------------------
 
         cap = cv2.VideoCapture(input_file.name)
@@ -102,17 +102,31 @@ if uploaded_file is not None:
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-        # Reduce resolution for efficiency
+        # -----------------------------
+        # Resize for efficiency
+        # -----------------------------
+
         max_width = 720
 
         if width > max_width:
+
             new_width = max_width
-            new_height = int(height * max_width / width)
+            new_height = int(
+                height * max_width / width
+            )
+
         else:
+
             new_width = width
             new_height = height
 
-        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+        # -----------------------------
+        # Video Writer
+        # -----------------------------
+
+        fourcc = cv2.VideoWriter_fourcc(
+            *"mp4v"
+        )
 
         writer = cv2.VideoWriter(
             output_path,
@@ -122,7 +136,7 @@ if uploaded_file is not None:
         )
 
         # -----------------------------
-        # Detection variables
+        # Detection Variables
         # -----------------------------
 
         overflow_found = False
@@ -133,20 +147,18 @@ if uploaded_file is not None:
 
         frame_count = 0
 
-        processed_count = 0
-
-        # -----------------------------
-        # Progress bar
-        # -----------------------------
-
-        progress = st.progress(0)
-
         total_frames = int(
             cap.get(cv2.CAP_PROP_FRAME_COUNT)
         )
 
         # -----------------------------
-        # Process video frame-by-frame
+        # Progress Bar
+        # -----------------------------
+
+        progress = st.progress(0)
+
+        # -----------------------------
+        # Process Video
         # -----------------------------
 
         while True:
@@ -160,15 +172,15 @@ if uploaded_file is not None:
 
             # Process every 2nd frame
             if frame_count % 2 != 0:
-                writer.write(
-                    cv2.resize(
-                        frame,
-                        (new_width, new_height)
-                    )
-                )
-                continue
 
-            processed_count += 1
+                frame = cv2.resize(
+                    frame,
+                    (new_width, new_height)
+                )
+
+                writer.write(frame)
+
+                continue
 
             # Resize frame
             frame = cv2.resize(
@@ -185,6 +197,10 @@ if uploaded_file is not None:
 
             frame_has_overflow = False
 
+            # -----------------------------
+            # Check Overflow
+            # -----------------------------
+
             if result.boxes is not None:
 
                 for cls in result.boxes.cls:
@@ -194,10 +210,11 @@ if uploaded_file is not None:
                     if class_name.lower() == "overflow":
 
                         frame_has_overflow = True
+
                         break
 
             # -----------------------------
-            # Consecutive frame logic
+            # Consecutive Frame Logic
             # -----------------------------
 
             if frame_has_overflow:
@@ -213,7 +230,7 @@ if uploaded_file is not None:
                 overflow_found = True
 
             # -----------------------------
-            # Draw detections
+            # Draw Predictions
             # -----------------------------
 
             annotated_frame = result.plot()
@@ -231,10 +248,12 @@ if uploaded_file is not None:
                     1.0
                 )
 
-                progress.progress(progress_value)
+                progress.progress(
+                    progress_value
+                )
 
         # -----------------------------
-        # Release resources
+        # Release Resources
         # -----------------------------
 
         cap.release()
@@ -244,43 +263,37 @@ if uploaded_file is not None:
 
         gc.collect()
 
-        st.success("✅ Prediction completed!")
+        st.success(
+            "✅ Prediction completed!"
+        )
 
         # -----------------------------
         # Detection Result
         # -----------------------------
 
-        st.subheader("📊 Detection Result")
+        st.subheader(
+            "📊 Detection Result"
+        )
 
-        if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
-
-    with open(output_path, "rb") as video_file:
-        video_bytes = video_file.read()
-
-    st.video(video_bytes, format="video/mp4")
-
-    st.download_button(
-        label="⬇️ Download Detection Result",
-        data=video_bytes,
-        file_name="garbage_detection_result.mp4",
-        mime="video/mp4"
-    )
-
-else:
-    st.error("❌ Output video was not generated.")
+        st.video(output_path)
 
         # -----------------------------
         # Download Result
         # -----------------------------
 
-        with open(output_path, "rb") as file:
+        with open(
+            output_path,
+            "rb"
+        ) as video_file:
 
-            st.download_button(
-                label="⬇️ Download Detection Result",
-                data=file,
-                file_name="garbage_detection_result.mp4",
-                mime="video/mp4"
-            )
+            video_bytes = video_file.read()
+
+        st.download_button(
+            label="⬇️ Download Detection Result",
+            data=video_bytes,
+            file_name="garbage_detection_result.mp4",
+            mime="video/mp4"
+        )
 
         # -----------------------------
         # Final Result
@@ -288,7 +301,9 @@ else:
 
         if overflow_found:
 
-            st.error("🚨 OVERFLOW DETECTED!")
+            st.error(
+                "🚨 OVERFLOW DETECTED!"
+            )
 
             st.warning(
                 "Garbage overflow has been detected. "
@@ -308,7 +323,6 @@ else:
         try:
 
             os.remove(input_file.name)
-
             os.remove(output_path)
 
         except Exception:
