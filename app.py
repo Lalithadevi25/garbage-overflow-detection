@@ -13,7 +13,7 @@ from datetime import datetime
 # ============================================================
 
 st.set_page_config(
-    page_title="EcoBin AI – Smart Garbage Overflow Detection",
+    page_title="EcoBin AI – Smart Garbage Overflow Prediction",
     page_icon="🗑️",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -32,259 +32,204 @@ st.markdown("""
 }
 
 .block-container {
-    padding-top: 1rem;
+    padding-top: 1.2rem;
     padding-bottom: 1.5rem;
-    max-width: 1250px;
+    max-width: 1450px;
+}
+
+/* ==========================================================
+   PAGE 1
+   ========================================================== */
+
+.home-title {
+    text-align: center;
+    font-size: 36px;
+    font-weight: 800;
+    color: #172554;
+    margin-bottom: 4px;
+}
+
+.home-subtitle {
+    text-align: center;
+    font-size: 19px;
+    color: #475569;
+    margin-bottom: 25px;
+}
+
+.aicw-title {
+    font-size: 30px;
+    font-weight: 800;
+    color: #172554;
+    margin-top: 35px;
+}
+
+.capstone {
+    font-size: 24px;
+    font-weight: 700;
+    color: #334155;
+    margin-top: 35px;
+    margin-bottom: 35px;
+}
+
+.description-title {
+    font-size: 25px;
+    font-weight: 800;
+    color: #172554;
+}
+
+.description {
+    font-size: 16px;
+    line-height: 1.65;
+    color: #475569;
+    margin-top: 12px;
+}
+
+/* Team cards */
+.team-box {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 18px;
+    min-height: 250px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+}
+
+.team-heading {
+    font-size: 17px;
+    font-weight: 800;
+    color: #334155;
+    margin-bottom: 20px;
+}
+
+.team-line {
+    font-size: 15px;
+    color: #334155;
+    margin-bottom: 18px;
+}
+
+.guide-box {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 18px;
+    min-height: 250px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+}
+
+.guide-heading {
+    font-size: 17px;
+    font-weight: 800;
+    color: #334155;
+    margin-bottom: 22px;
+}
+
+.guide-name {
+    font-size: 16px;
+    color: #334155;
+    margin-bottom: 30px;
+}
+
+.guide-designation-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: #334155;
+    margin-bottom: 12px;
+}
+
+.guide-designation {
+    font-size: 15px;
+    color: #475569;
 }
 
 
-/* ============================================================
-   MAIN TITLE
-   ============================================================ */
+/* ==========================================================
+   PAGE 2
+   ========================================================== */
 
 .main-title {
     text-align: center;
     font-size: 34px;
     font-weight: 800;
     color: #172554;
-    margin-bottom: 18px;
+    margin-bottom: 4px;
 }
 
-
-/* ============================================================
-   PAGE 1
-   ============================================================ */
-
-.aicw-title {
-    font-size: 28px;
-    font-weight: 800;
-    color: #172554;
-    margin-bottom: 10px;
-}
-
-.capstone {
-    font-size: 22px;
-    font-weight: 700;
-    color: #334155;
-    margin-top: 25px;
-    margin-bottom: 25px;
-}
-
-.description-title {
-    font-size: 23px;
-    font-weight: 700;
-    color: #172554;
-}
-
-.description {
-    font-size: 15px;
-    line-height: 1.6;
+.main-subtitle {
+    text-align: center;
+    font-size: 18px;
     color: #475569;
-}
-
-.team-box {
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 13px;
-    margin-top: 18px;
-    font-size: 14px;
-    line-height: 1.4;
-}
-
-
-/* ============================================================
-   INPUT / RESULT CARDS
-   ============================================================ */
-
-.card {
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    padding: 16px;
-    min-height: 330px;
-    box-shadow: 0 3px 12px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
 }
 
 .section-title {
-    font-size: 21px;
+    font-size: 23px;
     font-weight: 800;
     color: #172554;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
-
-/* ============================================================
-   WAITING RESULT
-   ============================================================ */
+.detection-heading {
+    font-size: 20px;
+    font-weight: 800;
+    color: #172554;
+    margin-top: 15px;
+    margin-bottom: 8px;
+}
 
 .waiting {
     background: #f8fafc;
     border: 2px dashed #cbd5e1;
-    border-radius: 12px;
-    padding: 30px 15px;
+    border-radius: 14px;
+    padding: 55px 20px;
     text-align: center;
-    margin-top: 10px;
 }
 
 .waiting h3 {
     color: #64748b;
-    font-size: 20px;
 }
 
-
-/* ============================================================
-   NORMAL RESULT
-   ============================================================ */
-
-.good-result {
+.normal-result {
     background: #ecfdf5;
     border: 2px solid #86efac;
-    border-radius: 12px;
-    padding: 20px;
+    border-radius: 15px;
+    padding: 28px;
     text-align: center;
-    margin-top: 10px;
 }
 
-.good-result h2 {
+.normal-result h2 {
     color: #15803d;
-    font-size: 25px;
 }
 
-
-/* ============================================================
-   OVERFLOW RESULT
-   ============================================================ */
-
-.bad-result {
+.overflow-result {
     background: #fef2f2;
     border: 2px solid #fca5a5;
-    border-radius: 12px;
-    padding: 18px;
+    border-radius: 15px;
+    padding: 28px;
     text-align: center;
-    margin-top: 10px;
 }
 
-.bad-result h2 {
+.overflow-result h2 {
     color: #dc2626;
-    font-size: 25px;
 }
-
-
-/* ============================================================
-   ALERT
-   ============================================================ */
 
 .alert-box {
-    background: #fff1f2;
-    border: 2px solid #ef4444;
-    border-left: 6px solid #dc2626;
-    border-radius: 10px;
-    padding: 16px;
-    margin-top: 15px;
-    color: #991b1b;
-    font-size: 15px;
-}
-
-
-/* ============================================================
-   NORMAL MESSAGE
-   ============================================================ */
-
-.normal-box {
-    background: #ecfdf5;
-    border: 2px solid #86efac;
-    border-left: 6px solid #16a34a;
-    border-radius: 10px;
-    padding: 15px;
-    margin-top: 15px;
-    color: #166534;
-    font-size: 15px;
-}
-
-
-/* ============================================================
-   DETECTION INFORMATION
-   ============================================================ */
-
-.detection-box {
     background: #fff7ed;
-    border-left: 5px solid #f97316;
-    padding: 14px;
-    border-radius: 8px;
-    margin-top: 12px;
+    border: 2px solid #fb923c;
+    border-radius: 14px;
+    padding: 20px;
+    margin-top: 18px;
 }
 
-.confidence {
-    font-size: 16px;
-    font-weight: 700;
-    color: #334155;
+.alert-title {
+    color: #dc2626;
+    font-size: 22px;
+    font-weight: 800;
 }
-
-
-/* ============================================================
-   LOCATION
-   ============================================================ */
-
-.location-box {
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 12px;
-    margin-bottom: 12px;
-}
-
-
-/* ============================================================
-   FOOTER
-   ============================================================ */
 
 .footer {
     text-align: center;
     color: #64748b;
-    margin-top: 20px;
-    font-size: 13px;
-}
-
-
-/* ============================================================
-   REDUCE STREAMLIT IMAGE DISPLAY SIZE
-   ============================================================ */
-
-[data-testid="stImage"] img {
-    max-height: 300px;
-    object-fit: contain;
-}
-
-
-/* ============================================================
-   BUTTON
-   ============================================================ */
-
-.stButton > button {
-    border-radius: 8px;
-    font-weight: 700;
-}
-
-
-/* ============================================================
-   MOBILE
-   ============================================================ */
-
-@media (max-width: 800px) {
-
-    .main-title {
-        font-size: 27px;
-    }
-
-    .aicw-title {
-        font-size: 23px;
-    }
-
-    .description-title {
-        font-size: 21px;
-    }
-
+    margin-top: 25px;
 }
 
 </style>
@@ -307,15 +252,6 @@ if "result_type" not in st.session_state:
 if "result_data" not in st.session_state:
     st.session_state.result_data = None
 
-if "location" not in st.session_state:
-    st.session_state.location = "Ramachandrapuram Municipal area"
-
-if "alert" not in st.session_state:
-    st.session_state.alert = False
-
-if "alert_time" not in st.session_state:
-    st.session_state.alert_time = None
-
 
 # ============================================================
 # MODEL
@@ -335,158 +271,101 @@ def load_model():
 
 
 try:
-
     model = load_model()
 
 except Exception as e:
-
-    st.error(
-        "❌ Trained model could not be loaded."
-    )
-
-    st.write(
-        "Make sure `best.pt` is present beside `app.py`."
-    )
-
+    st.error("❌ YOLO model could not be loaded.")
+    st.write("Make sure `best.pt` is present beside `app.py`.")
     st.code(str(e))
-
     st.stop()
 
 
 # ============================================================
-# HELPER FUNCTIONS
+# HELPER FUNCTION
 # ============================================================
 
-def get_class_name(result, class_id):
+def process_image(image):
 
-    name = result.names[class_id]
-
-    return str(name).lower().strip()
-
-
-def detect_overflow(result):
-
-    """
-    Returns:
-        True  -> overflow detected
-        False -> normal / no overflow
-    """
-
-    if result.boxes is None:
-        return False
-
-    if len(result.boxes) == 0:
-        return False
-
-    for box in result.boxes:
-
-        class_id = int(box.cls[0])
-
-        class_name = get_class_name(
-            result,
-            class_id
-        )
-
-        if class_name == "overflow":
-
-            return True
-
-    return False
-
-
-def get_best_detection(result):
-
-    if result.boxes is None:
-        return None
-
-    if len(result.boxes) == 0:
-        return None
+    result = model.predict(
+        source=np.array(image),
+        conf=CONF_THRESHOLD,
+        verbose=False
+    )[0]
 
     detections = []
 
     for box in result.boxes:
 
         class_id = int(box.cls[0])
-
         confidence = float(box.conf[0])
 
-        class_name = get_class_name(
-            result,
-            class_id
-        )
+        class_name = result.names[class_id].lower().strip()
 
-        detections.append(
-            (
-                class_name,
-                confidence
-            )
-        )
+        detections.append({
+            "class": class_name,
+            "confidence": confidence
+        })
 
-    if not detections:
-        return None
+    annotated = result.plot()
 
-    return max(
-        detections,
-        key=lambda x: x[1]
+    annotated = cv2.cvtColor(
+        annotated,
+        cv2.COLOR_BGR2RGB
     )
 
+    # --------------------------------------------------------
+    # IMPORTANT:
+    # YOUR TWO CLASSES ARE:
+    # normal
+    # overflow
+    # --------------------------------------------------------
 
-def create_alert():
+    overflow_detections = [
+        d for d in detections
+        if d["class"] == "overflow"
+    ]
 
-    st.session_state.alert = True
+    normal_detections = [
+        d for d in detections
+        if d["class"] == "normal"
+    ]
 
-    st.session_state.alert_time = (
-        datetime.now().strftime(
-            "%d-%m-%Y %I:%M:%S %p"
+    if overflow_detections:
+
+        best = max(
+            overflow_detections,
+            key=lambda x: x["confidence"]
         )
-    )
 
+        return {
+            "type": "overflow",
+            "class": "overflow",
+            "confidence": best["confidence"],
+            "image": annotated
+        }
 
-def clear_alert():
+    elif normal_detections:
 
-    st.session_state.alert = False
+        best = max(
+            normal_detections,
+            key=lambda x: x["confidence"]
+        )
 
-    st.session_state.alert_time = None
+        return {
+            "type": "normal",
+            "class": "normal",
+            "confidence": best["confidence"],
+            "image": annotated
+        }
 
+    else:
 
-def show_alert():
-
-    if not st.session_state.alert:
-        return
-
-    location = st.session_state.location
-
-    alert_time = st.session_state.alert_time
-
-    st.markdown(
-        f"""
-        <div class="alert-box">
-
-            🚨 <b>ALERT MESSAGE</b>
-
-            <br><br>
-
-            <b>Garbage Overflow Detected!</b>
-
-            <br><br>
-
-            📍 <b>Location:</b>
-            {location}
-
-            <br><br>
-
-            🕒 <b>Date & Time:</b>
-            {alert_time}
-
-            <br><br>
-
-            ⚠️ <b>Status:</b>
-            Garbage Overflow Detected
-
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+        return {
+            "type": "normal",
+            "class": "normal",
+            "confidence": 0,
+            "image": annotated
+        }
 
 
 # ============================================================
@@ -495,21 +374,27 @@ def show_alert():
 
 if st.session_state.page == 1:
 
+    # --------------------------------------------------------
+    # HEADER
+    # --------------------------------------------------------
+
     st.markdown(
         """
-        <div style="
-            text-align:center;
-            font-size:34px;
-            font-weight:800;
-            color:#172554;
-            margin-bottom:20px;
-        ">
-        🗑️ EcoBin AI – Smart Garbage Overflow Detection
+        <div class="home-title">
+            🗑️ EcoBin AI
+        </div>
+
+        <div class="home-subtitle">
+            Smart Garbage Overflow Detection System
         </div>
         """,
         unsafe_allow_html=True
     )
 
+
+    # --------------------------------------------------------
+    # MAIN AREA
+    # --------------------------------------------------------
 
     left, right = st.columns(
         [1, 2],
@@ -518,7 +403,7 @@ if st.session_state.page == 1:
 
 
     # ========================================================
-    # LEFT
+    # LEFT SIDE
     # ========================================================
 
     with left:
@@ -526,12 +411,13 @@ if st.session_state.page == 1:
         st.markdown(
             """
             <div class="aicw-title">
-                AI Career for Women (AICW)
+                AI Career for Women
+                <br>
+                (AICW)
             </div>
             """,
             unsafe_allow_html=True
         )
-
 
         st.markdown(
             """
@@ -542,27 +428,21 @@ if st.session_state.page == 1:
             unsafe_allow_html=True
         )
 
-
         if st.button(
             "🔍 PREDICT",
             use_container_width=True
         ):
 
             st.session_state.page = 2
-
             st.session_state.result_ready = False
-
             st.session_state.result_type = None
-
             st.session_state.result_data = None
-
-            clear_alert()
 
             st.rerun()
 
 
     # ========================================================
-    # RIGHT
+    # RIGHT SIDE
     # ========================================================
 
     with right:
@@ -570,29 +450,29 @@ if st.session_state.page == 1:
         st.markdown(
             """
             <div class="description-title">
-                Project Description
+                EcoBin AI – Smart Garbage Overflow Prediction
             </div>
             """,
             unsafe_allow_html=True
         )
-
 
         st.markdown(
             """
             <div class="description">
 
             EcoBin AI is an intelligent Smart Garbage Overflow
-            Detection System designed to automatically identify
-            overflowing garbage bins using Artificial Intelligence
+            Detection System developed using Artificial Intelligence
             and computer vision. The system uses a trained YOLOv8
-            deep learning model to analyze images, camera input
-            and videos. It detects two conditions: normal and
-            overflow. When garbage overflow is detected, the
-            system generates an alert containing the detection
-            status, location and date and time. This solution can
-            help municipalities and sanitation teams monitor
-            garbage collection points, respond quickly to overflow
-            situations and improve cleanliness in smart cities.
+            deep learning model to identify whether a garbage bin is
+            in a normal condition or overflowing. It supports camera
+            input, image upload and video upload for real-time and
+            offline monitoring. When garbage overflow is detected,
+            the system generates an alert containing the detection
+            status, location and date and time. EcoBin AI can help
+            municipalities and sanitation teams monitor garbage
+            collection points, respond quickly to overflowing bins,
+            improve waste collection efficiency and support cleaner
+            and smarter communities.
 
             </div>
             """,
@@ -601,20 +481,20 @@ if st.session_state.page == 1:
 
 
     # ========================================================
-    # TEAM
+    # TEAM + GUIDE
     # ========================================================
 
-    st.markdown(
-        "<br>",
-        unsafe_allow_html=True
-    )
+    st.markdown("<br><br>", unsafe_allow_html=True)
 
-
-    team_col, gmail_col, guide_col = st.columns(
-        [1.4, 1.4, 1],
+    team_col, guide_col = st.columns(
+        [2, 1],
         gap="medium"
     )
 
+
+    # --------------------------------------------------------
+    # TEAM MEMBERS
+    # --------------------------------------------------------
 
     with team_col:
 
@@ -622,79 +502,65 @@ if st.session_state.page == 1:
             """
             <div class="team-box">
 
-            <b>TEAM MEMBERS</b>
+                <div class="team-heading">
+                    TEAM MEMBERS
+                </div>
 
-            <br><br>
+                <div class="team-line">
+                    1. K.Lalitha Devi
+                    &nbsp;&nbsp;&nbsp;
+                    — lalithadevi825@gmail.com
+                </div>
 
-            1. Member Name
+                <div class="team-line">
+                    2. Y.Haasini
+                    &nbsp;&nbsp;&nbsp;
+                    — haasiniyanamadala@gmail.com
+                </div>
 
-            <br><br>
+                <div class="team-line">
+                    3. G.Sri Divya
+                    &nbsp;&nbsp;&nbsp;
+                    — galidivya534@gmail.com
+                </div>
 
-            2. Member Name
-
-            <br><br>
-
-            3. Member Name
-
-            <br><br>
-
-            4. Member Name
-
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-
-    with gmail_col:
-
-        st.markdown(
-            """
-            <div class="team-box">
-
-            <b>GMAIL</b>
-
-            <br><br>
-
-            member1@email.com
-
-            <br><br>
-
-            member2@email.com
-
-            <br><br>
-
-            member3@email.com
-
-            <br><br>
-
-            member4@email.com
+                <div class="team-line">
+                    4. N.Sushma sri
+                    &nbsp;&nbsp;&nbsp;
+                    — nadimpallisushmasri29@gmail.com
+                </div>
 
             </div>
             """,
             unsafe_allow_html=True
         )
 
+
+    # --------------------------------------------------------
+    # GUIDE
+    # --------------------------------------------------------
 
     with guide_col:
 
         st.markdown(
             """
-            <div class="team-box">
+            <div class="guide-box">
 
-            <b>GUIDE NAME</b>
+                <div class="guide-heading">
+                    GUIDE
+                </div>
 
-            <br><br>
+                <div class="guide-name">
+                    Md.Abdul Aziz
+                </div>
 
-            Guide Name
+                <div class="guide-designation-title">
+                    Designation
+                </div>
 
-            <br><br>
-
-            <b>Designation</b>
-
-            <br><br>
-
-            Co Lead & Trainer AICW
+                <div class="guide-designation">
+                    Co Lead & Trainer AICW
+                </div>
 
             </div>
             """,
@@ -719,13 +585,17 @@ if st.session_state.page == 1:
 else:
 
     # ========================================================
-    # TITLE
+    # HEADER
     # ========================================================
 
     st.markdown(
         """
         <div class="main-title">
-            🗑️ EcoBin AI – Smart Garbage Overflow Detection
+            🗑️ EcoBin AI
+        </div>
+
+        <div class="main-subtitle">
+            Smart Garbage Overflow Detection System
         </div>
         """,
         unsafe_allow_html=True
@@ -733,22 +603,15 @@ else:
 
 
     # ========================================================
-    # BACK
+    # BACK BUTTON
     # ========================================================
 
-    if st.button(
-        "← Back to Project"
-    ):
+    if st.button("⬅️ Back to Home"):
 
         st.session_state.page = 1
-
         st.session_state.result_ready = False
-
         st.session_state.result_type = None
-
         st.session_state.result_data = None
-
-        clear_alert()
 
         st.rerun()
 
@@ -758,38 +621,31 @@ else:
     # ========================================================
 
     st.markdown(
-        """
-        <div class="location-box">
-
-        <b>📍 Detection Location</b>
-
-        </div>
-        """,
+        '<div class="section-title">📍 Detection Location</div>',
         unsafe_allow_html=True
     )
 
-
-    st.session_state.location = st.text_input(
+    location = st.text_input(
         "Enter the garbage-bin / camera location",
-        value=st.session_state.location
+        value="Ramachandrapuram Municipal area"
     )
 
 
-    st.divider()
+    st.markdown("<br>", unsafe_allow_html=True)
 
 
     # ========================================================
-    # INPUT / RESULT
+    # INPUT / OUTPUT COLUMNS
     # ========================================================
 
-    input_col, result_col = st.columns(
+    input_col, output_col = st.columns(
         [1, 1],
-        gap="medium"
+        gap="large"
     )
 
 
     # ========================================================
-    # INPUT COLUMN
+    # INPUT
     # ========================================================
 
     with input_col:
@@ -801,129 +657,30 @@ else:
 
 
         input_type = st.radio(
-            "Select Input Type:",
+            "Select Detection Method",
             [
-                "🖼️ Image",
                 "📷 Camera",
+                "🖼️ Image",
                 "🎥 Video"
             ],
             horizontal=True
         )
 
 
-        st.write("")
-
-
-        # ====================================================
-        # IMAGE
-        # ====================================================
-
-        if input_type == "🖼️ Image":
-
-            uploaded_image = st.file_uploader(
-                "Choose Image",
-                type=[
-                    "jpg",
-                    "jpeg",
-                    "png",
-                    "webp"
-                ],
-                key="image_upload"
-            )
-
-
-            if uploaded_image:
-
-                image = Image.open(
-                    uploaded_image
-                ).convert("RGB")
-
-
-                st.image(
-                    image,
-                    caption="Input Image",
-                    width=420
-                )
-
-
-                analyze_image = st.button(
-                    "🔍 Analyze Image",
-                    use_container_width=True
-                )
-
-
-                if analyze_image:
-
-                    with st.spinner(
-                        "Detecting garbage overflow..."
-                    ):
-
-                        result = model.predict(
-                            source=np.array(image),
-                            conf=CONF_THRESHOLD,
-                            verbose=False
-                        )[0]
-
-
-                    overflow = detect_overflow(
-                        result
-                    )
-
-
-                    best = get_best_detection(
-                        result
-                    )
-
-
-                    annotated = result.plot()
-
-
-                    annotated = cv2.cvtColor(
-                        annotated,
-                        cv2.COLOR_BGR2RGB
-                    )
-
-
-                    st.session_state.result_ready = True
-
-
-                    if overflow:
-
-                        st.session_state.result_type = "overflow"
-
-                        st.session_state.result_data = {
-                            "image": annotated,
-                            "detection": best
-                        }
-
-                        create_alert()
-
-                    else:
-
-                        st.session_state.result_type = "normal"
-
-                        st.session_state.result_data = {
-                            "image": annotated,
-                            "detection": best
-                        }
-
-                        clear_alert()
-
-
-                    st.rerun()
-
-
         # ====================================================
         # CAMERA
         # ====================================================
 
-        elif input_type == "📷 Camera":
+        if input_type == "📷 Camera":
 
-            camera_image = st.camera_input(
-                "Take Photo",
-                key="camera_input"
+            st.markdown(
+                '<div class="detection-heading">📷 Camera</div>',
+                unsafe_allow_html=True
             )
 
+            camera_image = st.camera_input(
+                "Take Photo"
+            )
 
             if camera_image:
 
@@ -931,77 +688,79 @@ else:
                     camera_image
                 ).convert("RGB")
 
-
                 st.image(
                     image,
                     caption="Captured Image",
-                    width=420
-                )
-
-
-                analyze_camera = st.button(
-                    "🔍 Analyze Photo",
                     use_container_width=True
                 )
 
-
-                if analyze_camera:
+                if st.button(
+                    "🔍 Detect Garbage Overflow",
+                    use_container_width=True,
+                    key="camera_detect"
+                ):
 
                     with st.spinner(
-                        "Analyzing camera image..."
+                        "Analyzing captured image..."
                     ):
 
-                        result = model.predict(
-                            source=np.array(image),
-                            conf=CONF_THRESHOLD,
-                            verbose=False
-                        )[0]
-
-
-                    overflow = detect_overflow(
-                        result
-                    )
-
-
-                    best = get_best_detection(
-                        result
-                    )
-
-
-                    annotated = result.plot()
-
-
-                    annotated = cv2.cvtColor(
-                        annotated,
-                        cv2.COLOR_BGR2RGB
-                    )
-
+                        result = process_image(image)
 
                     st.session_state.result_ready = True
+                    st.session_state.result_type = result["type"]
+                    st.session_state.result_data = result
+
+                    st.rerun()
 
 
-                    if overflow:
+        # ====================================================
+        # IMAGE
+        # ====================================================
 
-                        st.session_state.result_type = "overflow"
+        elif input_type == "🖼️ Image":
 
-                        st.session_state.result_data = {
-                            "image": annotated,
-                            "detection": best
-                        }
+            st.markdown(
+                '<div class="detection-heading">🖼️ Upload Image</div>',
+                unsafe_allow_html=True
+            )
 
-                        create_alert()
+            uploaded_image = st.file_uploader(
+                "Choose Image",
+                type=[
+                    "jpg",
+                    "jpeg",
+                    "png"
+                ],
+                key="garbage_image"
+            )
 
-                    else:
+            if uploaded_image:
 
-                        st.session_state.result_type = "normal"
+                image = Image.open(
+                    uploaded_image
+                ).convert("RGB")
 
-                        st.session_state.result_data = {
-                            "image": annotated,
-                            "detection": best
-                        }
+                st.image(
+                    image,
+                    caption="Input Image",
+                    use_container_width=True
+                )
 
-                        clear_alert()
+                if st.button(
+                    "🔍 Detect Garbage Overflow",
+                    use_container_width=True,
+                    key="image_detect"
+                ):
 
+                    with st.spinner(
+                        "Analyzing image..."
+                    ):
+
+                        result = process_image(image)
+
+                    st.session_state.result_ready = True
+                    st.session_state.result_type = result["type"]
+                    st.session_state.result_data = result
 
                     st.rerun()
 
@@ -1012,6 +771,11 @@ else:
 
         elif input_type == "🎥 Video":
 
+            st.markdown(
+                '<div class="detection-heading">🎥 Upload Video</div>',
+                unsafe_allow_html=True
+            )
+
             uploaded_video = st.file_uploader(
                 "Choose Video",
                 type=[
@@ -1020,9 +784,8 @@ else:
                     "mov",
                     "mkv"
                 ],
-                key="video_upload"
+                key="garbage_video"
             )
-
 
             if uploaded_video:
 
@@ -1030,14 +793,11 @@ else:
                     uploaded_video
                 )
 
-
-                analyze_video = st.button(
-                    "🔍 Analyze Video",
-                    use_container_width=True
-                )
-
-
-                if analyze_video:
+                if st.button(
+                    "🔍 Detect Garbage Overflow",
+                    use_container_width=True,
+                    key="video_detect"
+                ):
 
                     with st.spinner(
                         "Analyzing video... Please wait."
@@ -1052,11 +812,9 @@ else:
                             suffix=".mp4"
                         )
 
-
                         input_temp.write(
                             uploaded_video.getbuffer()
                         )
-
 
                         input_temp.close()
 
@@ -1070,7 +828,6 @@ else:
                             cv2.CAP_PROP_FPS
                         )
 
-
                         if fps <= 0:
                             fps = 20
 
@@ -1081,13 +838,11 @@ else:
                             )
                         )
 
-
                         height = int(
                             cap.get(
                                 cv2.CAP_PROP_FRAME_HEIGHT
                             )
                         )
-
 
                         total_frames = int(
                             cap.get(
@@ -1097,7 +852,7 @@ else:
 
 
                         # ------------------------------------
-                        # OUTPUT
+                        # OUTPUT VIDEO
                         # ------------------------------------
 
                         output_temp = tempfile.NamedTemporaryFile(
@@ -1105,14 +860,12 @@ else:
                             suffix=".mp4"
                         )
 
-
                         output_temp.close()
 
 
                         fourcc = cv2.VideoWriter_fourcc(
                             *"mp4v"
                         )
-
 
                         writer = cv2.VideoWriter(
                             output_temp.name,
@@ -1122,15 +875,10 @@ else:
                         )
 
 
-                        overflow_detected = False
-
-                        highest_confidence = 0.0
-
-                        best_class = "normal"
-
+                        any_overflow = False
+                        max_overflow_confidence = 0.0
 
                         progress = st.progress(0)
-
 
                         frame_count = 0
 
@@ -1143,7 +891,6 @@ else:
 
                             ret, frame = cap.read()
 
-
                             if not ret:
                                 break
 
@@ -1155,30 +902,34 @@ else:
                             )[0]
 
 
-                            if detect_overflow(result):
+                            # Check detections
+                            for box in result.boxes:
 
-                                overflow_detected = True
+                                class_id = int(
+                                    box.cls[0]
+                                )
 
+                                confidence = float(
+                                    box.conf[0]
+                                )
 
-                            best = get_best_detection(
-                                result
-                            )
-
-
-                            if best is not None:
-
-                                class_name, confidence = best
-
-
-                                if confidence > highest_confidence:
-
-                                    highest_confidence = confidence
-
-                                    best_class = class_name
+                                class_name = result.names[
+                                    class_id
+                                ].lower().strip()
 
 
+                                if class_name == "overflow":
+
+                                    any_overflow = True
+
+                                    max_overflow_confidence = max(
+                                        max_overflow_confidence,
+                                        confidence
+                                    )
+
+
+                            # Draw boxes
                             annotated = result.plot()
-
 
                             writer.write(
                                 annotated
@@ -1192,84 +943,68 @@ else:
 
                                 progress.progress(
                                     min(
-                                        frame_count /
-                                        total_frames,
+                                        frame_count / total_frames,
                                         1.0
                                     )
                                 )
 
 
                         cap.release()
-
                         writer.release()
 
                         progress.empty()
 
 
+                        # Remove input temp
+                        try:
+                            os.remove(
+                                input_temp.name
+                            )
+                        except:
+                            pass
+
+
                         # ------------------------------------
-                        # SAVE RESULT
+                        # STORE VIDEO RESULT
                         # ------------------------------------
 
-                        st.session_state.result_ready = True
+                        if any_overflow:
 
-
-                        if overflow_detected:
+                            st.session_state.result_ready = True
 
                             st.session_state.result_type = "overflow_video"
 
                             st.session_state.result_data = {
-                                "video":
-                                    output_temp.name,
                                 "confidence":
-                                    highest_confidence,
-                                "class":
-                                    "overflow"
+                                    max_overflow_confidence,
+
+                                "video":
+                                    output_temp.name
                             }
 
-                            create_alert()
-
                         else:
+
+                            st.session_state.result_ready = True
 
                             st.session_state.result_type = "normal_video"
 
                             st.session_state.result_data = {
                                 "video":
-                                    output_temp.name,
-                                "confidence":
-                                    highest_confidence,
-                                "class":
-                                    "normal"
+                                    output_temp.name
                             }
-
-                            clear_alert()
-
-
-                        try:
-
-                            os.remove(
-                                input_temp.name
-                            )
-
-                        except:
-
-                            pass
 
 
                         st.rerun()
 
 
     # ========================================================
-    # RESULT COLUMN
+    # OUTPUT
     # ========================================================
 
-    with result_col:
+    with output_col:
 
         st.markdown(
-            """
-            <div class="section-title">
-                🤖 DETECTION RESULT
-            </div>
-            """,
+            '<div class="section-title">📤 OUTPUT</div>',
             unsafe_allow_html=True
         )
 
@@ -1289,8 +1024,8 @@ else:
                     </h3>
 
                     <p>
-                        Upload an image, take a photo,
-                        or upload a video to start detection.
+                        Upload an image/video or take a photo
+                        using the camera.
                     </p>
 
                 </div>
@@ -1307,10 +1042,9 @@ else:
 
             data = st.session_state.result_data
 
-
             st.markdown(
                 """
-                <div class="good-result">
+                <div class="normal-result">
 
                     <h2>
                         🟢 NORMAL
@@ -1325,27 +1059,12 @@ else:
                 unsafe_allow_html=True
             )
 
-
-            if data["image"] is not None:
+            if data and "image" in data:
 
                 st.image(
                     data["image"],
-                    caption="Detection Result",
-                    width=420
-                )
-
-
-            best = data["detection"]
-
-
-            if best is not None:
-
-                class_name, confidence = best
-
-
-                st.info(
-                    f"Detected Class: {class_name} | "
-                    f"Confidence: {confidence * 100:.2f}%"
+                    caption="Detection Output",
+                    use_container_width=True
                 )
 
 
@@ -1357,17 +1076,16 @@ else:
 
             data = st.session_state.result_data
 
-
             st.markdown(
                 """
-                <div class="bad-result">
+                <div class="overflow-result">
 
                     <h2>
-                        🔴 OVERFLOW
+                        🔴 GARBAGE OVERFLOW DETECTED
                     </h2>
 
                     <p>
-                        Garbage Overflow Detected
+                        Overflow violation detected.
                     </p>
 
                 </div>
@@ -1375,41 +1093,59 @@ else:
                 unsafe_allow_html=True
             )
 
+            if data and "image" in data:
 
-            best = data["detection"]
-
-
-            if best is not None:
-
-                class_name, confidence = best
-
-
-                st.markdown(
-                    f"""
-                    <div class="detection-box">
-
-                        <b>Detected Class:</b>
-                        {class_name}
-
-                        <br><br>
-
-                        <span class="confidence">
-
-                        Confidence:
-                        {confidence * 100:.2f}%
-
-                        </span>
-
-                    </div>
-                    """,
-                    unsafe_allow_html=True
+                st.image(
+                    data["image"],
+                    caption="Detection Output",
+                    use_container_width=True
                 )
 
+            # Alert
+            current_time = datetime.now().strftime(
+                "%d-%m-%Y %I:%M:%S %p"
+            )
 
-            st.image(
-                data["image"],
-                caption="Garbage Overflow Detection",
-                width=420
+            confidence = data.get(
+                "confidence",
+                0
+            )
+
+            st.markdown(
+                f"""
+                <div class="alert-box">
+
+                    <div class="alert-title">
+                        🚨 ALERT MESSAGE
+                    </div>
+
+                    <br>
+
+                    <b>Garbage Overflow Detected!</b>
+
+                    <br><br>
+
+                    📍 <b>Location:</b>
+                    {location}
+
+                    <br><br>
+
+                    🕒 <b>Date & Time:</b>
+                    {current_time}
+
+                    <br><br>
+
+                    ⚠️ <b>Status:</b>
+                    Garbage Overflow Detected
+
+                    <br><br>
+
+                    🎯 <b>Confidence:</b>
+                    {confidence * 100:.2f}%
+
+                </div>
+                """,
+                unsafe_allow_html=True
             )
 
 
@@ -1421,18 +1157,16 @@ else:
 
             data = st.session_state.result_data
 
-
             st.markdown(
                 """
-                <div class="good-result">
+                <div class="normal-result">
 
                     <h2>
                         🟢 NORMAL
                     </h2>
 
                     <p>
-                        No garbage overflow detected
-                        in the video.
+                        No garbage overflow detected in the video.
                     </p>
 
                 </div>
@@ -1441,28 +1175,19 @@ else:
             )
 
 
-            if os.path.exists(
-                data["video"]
-            ):
+            video_path = data["video"]
+
+            if os.path.exists(video_path):
 
                 with open(
-                    data["video"],
+                    video_path,
                     "rb"
                 ) as video_file:
 
                     video_bytes = video_file.read()
 
-
                 st.video(
                     video_bytes
-                )
-
-
-                st.download_button(
-                    "⬇️ Download Detection Video",
-                    data=video_bytes,
-                    file_name="ecobin_normal_result.mp4",
-                    mime="video/mp4"
                 )
 
 
@@ -1474,18 +1199,16 @@ else:
 
             data = st.session_state.result_data
 
-
             st.markdown(
                 """
-                <div class="bad-result">
+                <div class="overflow-result">
 
                     <h2>
-                        🔴 OVERFLOW
+                        🔴 GARBAGE OVERFLOW DETECTED
                     </h2>
 
                     <p>
-                        Garbage Overflow Detected
-                        in the video.
+                        Overflow violation detected in video.
                     </p>
 
                 </div>
@@ -1494,75 +1217,70 @@ else:
             )
 
 
-            st.markdown(
-                f"""
-                <div class="detection-box">
-
-                    <b>Detected Class:</b>
-                    overflow
-
-                    <br><br>
-
-                    <span class="confidence">
-
-                    Highest Confidence:
-                    {data["confidence"] * 100:.2f}%
-
-                    </span>
-
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+            video_path = data["video"]
 
 
-            if os.path.exists(
-                data["video"]
-            ):
+            if os.path.exists(video_path):
 
                 with open(
-                    data["video"],
+                    video_path,
                     "rb"
                 ) as video_file:
 
                     video_bytes = video_file.read()
-
 
                 st.video(
                     video_bytes
                 )
 
 
-                st.download_button(
-                    "⬇️ Download Detection Video",
-                    data=video_bytes,
-                    file_name="ecobin_overflow_result.mp4",
-                    mime="video/mp4"
-                )
+            current_time = datetime.now().strftime(
+                "%d-%m-%Y %I:%M:%S %p"
+            )
+
+            confidence = data.get(
+                "confidence",
+                0
+            )
 
 
-    # ========================================================
-    # ALERT MESSAGE
-    # ========================================================
+            # Alert
+            st.markdown(
+                f"""
+                <div class="alert-box">
 
-    if st.session_state.alert:
+                    <div class="alert-title">
+                        🚨 ALERT MESSAGE
+                    </div>
 
-        show_alert()
+                    <br>
 
+                    <b>Garbage Overflow Detected!</b>
 
-    # ========================================================
-    # CLEAR ALERT
-    # ========================================================
+                    <br><br>
 
-    if st.session_state.alert:
+                    📍 <b>Location:</b>
+                    {location}
 
-        if st.button(
-            "Clear Alert"
-        ):
+                    <br><br>
 
-            clear_alert()
+                    🕒 <b>Date & Time:</b>
+                    {current_time}
 
-            st.rerun()
+                    <br><br>
+
+                    ⚠️ <b>Status:</b>
+                    Garbage Overflow Detected
+
+                    <br><br>
+
+                    🎯 <b>Confidence:</b>
+                    {confidence * 100:.2f}%
+
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
 
     # ========================================================
