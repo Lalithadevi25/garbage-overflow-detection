@@ -1,6 +1,5 @@
 streamlit
-ultralytics==8.4.117
+ultralytics
 opencv-python-headless==4.10.0.84
-imageio-ffmpeg
-numpy
+numpy<2
 Pillow
