@@ -1,120 +1,626 @@
 import streamlit as st
 from ultralytics import YOLO
+from PIL import Image
+import cv2
+import numpy as np
 import tempfile
 import os
-import cv2
-import imageio_ffmpeg
-import subprocess
-import gc
+from datetime import datetime
 
-# =========================================================
+
+# ============================================================
 # PAGE CONFIGURATION
-# =========================================================
+# ============================================================
 
 st.set_page_config(
-    page_title="Garbage Overflow Detection",
+    page_title="EcoBin AI",
     page_icon="🗑️",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
 
-# =========================================================
-# TITLE
-# =========================================================
 
-st.title("🗑️ Garbage Overflow Detection System")
+# ============================================================
+# CONFIGURATION
+# ============================================================
 
-st.write(
-    "YOLOv8-based Normal and Overflow Detection"
-)
-
-# =========================================================
-# LOAD MODEL
-# =========================================================
-
+# Keep your trained YOLO model in the same folder as app.py
 MODEL_PATH = "best.pt"
 
+# ------------------------------------------------------------
+# IMPORTANT:
+# If your model detects ONLY garbage overflow, any detection
+# can be considered a violation.
+#
+# If your model has classes such as:
+# "garbage", "overflow", "full_bin", etc.,
+# the code will detect those automatically.
+# ------------------------------------------------------------
+
+OVERFLOW_KEYWORDS = [
+    "overflow",
+    "garbage overflow",
+    "waste overflow",
+    "overflowing",
+    "full bin",
+    "full",
+    "garbage",
+    "waste",
+    "litter"
+]
+
+
+# ============================================================
+# SESSION STATE
+# ============================================================
+
+if "page" not in st.session_state:
+    st.session_state.page = 1
+
+if "location" not in st.session_state:
+    st.session_state.location = "Location not configured"
+
+if "alert" not in st.session_state:
+    st.session_state.alert = None
+
+
+# ============================================================
+# LOAD YOLO MODEL
+# ============================================================
 
 @st.cache_resource
 def load_model():
+
+    if not os.path.exists(MODEL_PATH):
+        return None
+
     return YOLO(MODEL_PATH)
 
 
 model = load_model()
 
-# =========================================================
-# VIDEO UPLOAD
-# =========================================================
 
-uploaded_file = st.file_uploader(
-    "📤 Upload a garbage video",
-    type=["mp4", "avi", "mov"]
+# ============================================================
+# CSS
+# ============================================================
+
+st.markdown(
+    """
+    <style>
+
+    /* ======================================================
+       GENERAL STREAMLIT
+       ====================================================== */
+
+    .block-container {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        padding-left: 1.2rem;
+        padding-right: 1.2rem;
+        max-width: 100%;
+    }
+
+    /* ======================================================
+       PAGE 1 OUTER RECTANGLE
+       ====================================================== */
+
+    .home-container {
+        width: 100%;
+        border: 3px solid #111;
+        background: white;
+        color: #111;
+        box-sizing: border-box;
+    }
+
+
+    /* ======================================================
+       PAGE 1 HEADER
+       ====================================================== */
+
+    .home-header {
+        width: 100%;
+        min-height: 125px;
+
+        border-bottom: 3px solid #111;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+
+        text-align: center;
+
+        box-sizing: border-box;
+    }
+
+    .home-header-title {
+        font-size: 42px;
+        font-weight: 800;
+        letter-spacing: 2px;
+        margin: 0;
+    }
+
+    .home-header-subtitle {
+        font-size: 20px;
+        font-weight: 600;
+        margin-top: 8px;
+    }
+
+
+    /* ======================================================
+       PAGE 1 MAIN BODY
+       ====================================================== */
+
+    .home-body {
+        display: grid;
+
+        grid-template-columns: 37% 63%;
+
+        min-height: 650px;
+
+        width: 100%;
+    }
+
+
+    /* ======================================================
+       PAGE 1 LEFT SIDE
+       ====================================================== */
+
+    .home-left {
+        border-right: 3px solid #111;
+
+        box-sizing: border-box;
+
+        padding: 50px 30px;
+
+        text-align: center;
+    }
+
+    .aicw-text {
+        font-size: 28px;
+        font-weight: 700;
+
+        line-height: 1.4;
+
+        margin-top: 80px;
+    }
+
+    .project-text {
+        font-size: 23px;
+        font-weight: 600;
+
+        margin-top: 35px;
+    }
+
+    .predict-placeholder {
+        margin-top: 100px;
+    }
+
+
+    /* ======================================================
+       PAGE 1 RIGHT SIDE
+       ====================================================== */
+
+    .home-right {
+        display: grid;
+
+        grid-template-rows:
+            100px
+            300px
+            1fr;
+
+        min-width: 0;
+    }
+
+
+    /* ======================================================
+       TITLE
+       ====================================================== */
+
+    .title-area {
+        border-bottom: 3px solid #111;
+
+        padding: 25px;
+
+        box-sizing: border-box;
+    }
+
+    .title-area h2 {
+        margin: 0;
+
+        font-size: 28px;
+    }
+
+
+    /* ======================================================
+       DESCRIPTION
+       ====================================================== */
+
+    .description-area {
+        border-bottom: 3px solid #111;
+
+        padding: 25px;
+
+        box-sizing: border-box;
+    }
+
+    .description-area h2 {
+        margin-top: 0;
+
+        font-size: 24px;
+    }
+
+    .description-text {
+        font-size: 16px;
+
+        line-height: 1.7;
+
+        text-align: justify;
+    }
+
+
+    /* ======================================================
+       TEAM + GUIDE
+       ====================================================== */
+
+    .bottom-area {
+        display: grid;
+
+        grid-template-columns: 60% 40%;
+
+        min-height: 250px;
+    }
+
+    .team-area {
+        border-right: 3px solid #111;
+
+        padding: 25px;
+
+        box-sizing: border-box;
+    }
+
+    .guide-area {
+        padding: 25px;
+
+        box-sizing: border-box;
+    }
+
+    .section-heading {
+        font-size: 22px;
+
+        font-weight: 800;
+
+        margin-bottom: 20px;
+    }
+
+    .team-member {
+        font-size: 16px;
+
+        margin-bottom: 14px;
+    }
+
+    .guide-name {
+        font-size: 18px;
+
+        font-weight: 700;
+
+        margin-top: 15px;
+    }
+
+    .guide-designation {
+        font-size: 16px;
+
+        margin-top: 8px;
+    }
+
+
+    /* ======================================================
+       PAGE 2
+       ====================================================== */
+
+    .page2-header {
+        width: 100%;
+
+        border: 3px solid #111;
+
+        padding: 18px;
+
+        text-align: center;
+
+        box-sizing: border-box;
+
+        margin-bottom: 15px;
+    }
+
+    .page2-header h1 {
+        margin: 0;
+
+        font-size: 34px;
+    }
+
+    .page2-header p {
+        margin: 7px 0 0 0;
+
+        font-size: 18px;
+    }
+
+
+    /* ======================================================
+       DETECTION BOXES
+       ====================================================== */
+
+    .detection-box {
+        border: 3px solid #111;
+
+        min-height: 300px;
+
+        padding: 15px;
+
+        box-sizing: border-box;
+
+        background: white;
+    }
+
+    .detection-heading {
+        text-align: center;
+
+        font-size: 22px;
+
+        font-weight: 800;
+
+        border-bottom: 2px solid #111;
+
+        padding-bottom: 10px;
+
+        margin-bottom: 15px;
+    }
+
+
+    /* ======================================================
+       ALERT
+       ====================================================== */
+
+    .alert-box {
+        border: 3px solid #b00020;
+
+        padding: 18px;
+
+        margin-top: 15px;
+
+        background: #fff5f5;
+
+        color: #8b0000;
+
+        font-weight: 700;
+
+        font-size: 16px;
+    }
+
+
+    /* ======================================================
+       SAFE MESSAGE
+       ====================================================== */
+
+    .safe-box {
+        border: 3px solid #168516;
+
+        padding: 18px;
+
+        margin-top: 15px;
+
+        background: #f3fff3;
+
+        color: #146b14;
+
+        font-weight: 700;
+    }
+
+
+    /* ======================================================
+       MOBILE
+       ====================================================== */
+
+    @media (max-width: 900px) {
+
+        .home-body {
+            grid-template-columns: 1fr;
+        }
+
+        .home-left {
+            border-right: none;
+
+            border-bottom: 3px solid #111;
+        }
+
+        .home-right {
+            grid-template-rows:
+                100px
+                auto
+                auto;
+        }
+
+        .bottom-area {
+            grid-template-columns: 1fr;
+        }
+
+        .team-area {
+            border-right: none;
+
+            border-bottom: 3px solid #111;
+        }
+
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
 )
 
-# =========================================================
-# IF VIDEO IS UPLOADED
-# =========================================================
 
-if uploaded_file is not None:
+# ============================================================
+# HELPER — GET CURRENT DATE/TIME
+# ============================================================
 
-    st.success("✅ Video uploaded successfully!")
+def get_current_datetime():
 
-    # =====================================================
-    # SAVE INPUT VIDEO
-    # =====================================================
-
-    input_file = tempfile.NamedTemporaryFile(
-        delete=False,
-        suffix=".mp4"
+    return datetime.now().strftime(
+        "%d-%m-%Y %I:%M:%S %p"
     )
 
-    while True:
 
-        chunk = uploaded_file.read(1024 * 1024)
+# ============================================================
+# CREATE ALERT
+# ============================================================
 
-        if not chunk:
-            break
+def create_alert():
 
-        input_file.write(chunk)
+    st.session_state.alert = {
+        "location": st.session_state.location,
+        "time": get_current_datetime(),
+        "status": "Garbage Overflow Detected"
+    }
 
-    input_file.close()
 
-    # =====================================================
-    # DISPLAY INPUT VIDEO
-    # =====================================================
+# ============================================================
+# CLEAR ALERT
+# ============================================================
 
-    st.subheader("🎥 Input Video")
+def clear_alert():
 
-    st.video(input_file.name)
+    st.session_state.alert = None
 
-    # =====================================================
-    # DETECT BUTTON
-    # =====================================================
 
-    if st.button("🔍 Detect Garbage Overflow"):
+# ============================================================
+# CHECK WHETHER DETECTION IS OVERFLOW
+# ============================================================
 
-        st.info(
-            "Processing video... Please wait."
+def check_overflow(result):
+
+    """
+    Checks YOLO result class names.
+
+    If any detected class contains an overflow/garbage keyword,
+    violation is considered detected.
+    """
+
+    if result.boxes is None:
+        return False
+
+    if len(result.boxes) == 0:
+        return False
+
+    for box in result.boxes:
+
+        class_id = int(box.cls[0])
+
+        class_name = model.names.get(
+            class_id,
+            str(class_id)
         )
 
-        # =================================================
-        # OPEN INPUT VIDEO
-        # =================================================
+        class_name = class_name.lower().strip()
+
+        for keyword in OVERFLOW_KEYWORDS:
+
+            if keyword in class_name:
+
+                return True
+
+    return False
+
+
+# ============================================================
+# IMAGE DETECTION
+# ============================================================
+
+def detect_image(image):
+
+    if model is None:
+
+        st.error(
+            f"Model not found: {MODEL_PATH}\n\n"
+            "Please keep your trained best.pt file "
+            "in the same folder as app.py."
+        )
+
+        return None, False
+
+    image_array = np.array(image)
+
+    results = model.predict(
+        source=image_array,
+        conf=0.25,
+        verbose=False
+    )
+
+    result = results[0]
+
+    output = result.plot()
+
+    violation = check_overflow(result)
+
+    return output, violation
+
+
+# ============================================================
+# VIDEO DETECTION
+# ============================================================
+
+def process_video(video_file):
+
+    if model is None:
+
+        st.error(
+            f"Model not found: {MODEL_PATH}"
+        )
+
+        return None, False
+
+
+    input_path = None
+
+    output_path = None
+
+
+    try:
+
+        extension = os.path.splitext(
+            video_file.name
+        )[1]
+
+
+        # ----------------------------------------------------
+        # SAVE UPLOADED VIDEO
+        # ----------------------------------------------------
+
+        with tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=extension
+        ) as temp_file:
+
+            temp_file.write(
+                video_file.read()
+            )
+
+            input_path = temp_file.name
+
+
+        # ----------------------------------------------------
+        # OPEN VIDEO
+        # ----------------------------------------------------
 
         cap = cv2.VideoCapture(
-            input_file.name
+            input_path
         )
 
         if not cap.isOpened():
 
             st.error(
-                "❌ Unable to open the uploaded video."
+                "Unable to open uploaded video."
             )
 
-            st.stop()
+            return None, False
 
-        # =================================================
-        # GET VIDEO PROPERTIES
-        # =================================================
 
         fps = cap.get(
             cv2.CAP_PROP_FPS
@@ -123,17 +629,19 @@ if uploaded_file is not None:
         if fps <= 0:
             fps = 25
 
-        original_width = int(
+
+        width = int(
             cap.get(
                 cv2.CAP_PROP_FRAME_WIDTH
             )
         )
 
-        original_height = int(
+        height = int(
             cap.get(
                 cv2.CAP_PROP_FRAME_HEIGHT
             )
         )
+
 
         total_frames = int(
             cap.get(
@@ -141,55 +649,20 @@ if uploaded_file is not None:
             )
         )
 
-        # =================================================
-        # PRESERVE ORIGINAL ASPECT RATIO
-        # =================================================
 
-        max_width = 720
+        # ----------------------------------------------------
+        # OUTPUT VIDEO
+        # ----------------------------------------------------
 
-        if original_width > max_width:
-
-            output_width = max_width
-
-            output_height = int(
-                original_height
-                * output_width
-                / original_width
-            )
-
-        else:
-
-            output_width = original_width
-            output_height = original_height
-
-        # -------------------------------------------------
-        # Make dimensions even for H.264 compatibility
-        # -------------------------------------------------
-
-        output_width = output_width - (
-            output_width % 2
-        )
-
-        output_height = output_height - (
-            output_height % 2
-        )
-
-        # =================================================
-        # CREATE TEMPORARY OUTPUT
-        # =================================================
-
-        temp_output = tempfile.NamedTemporaryFile(
+        output_file = tempfile.NamedTemporaryFile(
             delete=False,
             suffix=".mp4"
         )
 
-        output_path = temp_output.name
+        output_path = output_file.name
 
-        temp_output.close()
+        output_file.close()
 
-        # =================================================
-        # VIDEO WRITER
-        # =================================================
 
         fourcc = cv2.VideoWriter_fourcc(
             *"mp4v"
@@ -199,43 +672,20 @@ if uploaded_file is not None:
             output_path,
             fourcc,
             fps,
-            (
-                output_width,
-                output_height
-            )
+            (width, height)
         )
 
-        if not writer.isOpened():
 
-            cap.release()
+        # ----------------------------------------------------
+        # PROCESS VIDEO
+        # ----------------------------------------------------
 
-            st.error(
-                "❌ Unable to create output video."
-            )
-
-            st.stop()
-
-        # =================================================
-        # DETECTION VARIABLES
-        # =================================================
-
-        overflow_found = False
-
-        consecutive_overflow = 0
-
-        required_consecutive_frames = 3
+        violation_detected = False
 
         frame_count = 0
 
-        # =================================================
-        # PROGRESS BAR
-        # =================================================
-
         progress = st.progress(0)
 
-        # =================================================
-        # PROCESS VIDEO
-        # =================================================
 
         while True:
 
@@ -244,321 +694,913 @@ if uploaded_file is not None:
             if not success:
                 break
 
-            frame_count += 1
 
-            # =============================================
-            # RESIZE WHILE PRESERVING ASPECT RATIO
-            # =============================================
-
-            frame = cv2.resize(
-                frame,
-                (
-                    output_width,
-                    output_height
-                ),
-                interpolation=cv2.INTER_AREA
+            results = model.predict(
+                source=frame,
+                conf=0.25,
+                verbose=False
             )
 
-            # =============================================
-            # YOLO PREDICTION
-            # =============================================
+            result = results[0]
 
-            result = model.predict(
-                source=frame,
-                conf=0.5,
-                verbose=False
-            )[0]
 
-            # =============================================
+            # ------------------------------------------------
             # CHECK OVERFLOW
-            # =============================================
+            # ------------------------------------------------
 
-            frame_has_overflow = False
+            if check_overflow(result):
 
-            if result.boxes is not None:
+                violation_detected = True
 
-                for cls in result.boxes.cls:
 
-                    class_name = model.names[
-                        int(cls)
-                    ]
-
-                    if (
-                        class_name.lower()
-                        == "overflow"
-                    ):
-
-                        frame_has_overflow = True
-
-                        break
-
-            # =============================================
-            # CONSECUTIVE FRAME LOGIC
-            # =============================================
-
-            if frame_has_overflow:
-
-                consecutive_overflow += 1
-
-            else:
-
-                consecutive_overflow = 0
-
-            if (
-                consecutive_overflow
-                >= required_consecutive_frames
-            ):
-
-                overflow_found = True
-
-            # =============================================
-            # DRAW YOLO PREDICTIONS
-            # =============================================
+            # ------------------------------------------------
+            # DRAW BOUNDING BOXES
+            # ------------------------------------------------
 
             annotated_frame = result.plot()
 
-            # =============================================
-            # SAFETY: MAINTAIN OUTPUT SIZE
-            # =============================================
-
-            if (
-                annotated_frame.shape[1]
-                != output_width
-                or
-                annotated_frame.shape[0]
-                != output_height
-            ):
-
-                annotated_frame = cv2.resize(
-                    annotated_frame,
-                    (
-                        output_width,
-                        output_height
-                    ),
-                    interpolation=cv2.INTER_AREA
-                )
-
-            # =============================================
-            # WRITE FRAME
-            # =============================================
 
             writer.write(
                 annotated_frame
             )
 
-            # =============================================
-            # UPDATE PROGRESS
-            # =============================================
+
+            frame_count += 1
+
 
             if total_frames > 0:
 
-                progress_value = (
-                    frame_count
-                    / total_frames
-                )
-
                 progress.progress(
                     min(
-                        progress_value,
+                        frame_count / total_frames,
                         1.0
                     )
                 )
 
-        # =================================================
-        # RELEASE RESOURCES
-        # =================================================
 
         cap.release()
 
         writer.release()
 
-        progress.progress(1.0)
+        progress.empty()
 
-        gc.collect()
 
-        # =================================================
-        # CONVERT OUTPUT TO H.264 MP4
-        # =================================================
-
-        st.info(
-            "Preparing browser-compatible video..."
-        )
-
-        browser_video = tempfile.NamedTemporaryFile(
-            delete=False,
-            suffix=".mp4"
-        )
-
-        browser_video_path = (
-            browser_video.name
-        )
-
-        browser_video.close()
-
-        ffmpeg_path = (
-            imageio_ffmpeg.get_ffmpeg_exe()
-        )
-
-        # =================================================
-        # FFMPEG COMMAND
-        # =================================================
-
-        command = [
-
-            ffmpeg_path,
-
-            "-y",
-
-            "-i",
+        return (
             output_path,
-
-            # Video codec
-            "-c:v",
-            "libx264",
-
-            # Fast encoding
-            "-preset",
-            "veryfast",
-
-            # Quality
-            "-crf",
-            "23",
-
-            # Browser compatible pixel format
-            "-pix_fmt",
-            "yuv420p",
-
-            # Preserve original display aspect ratio
-            "-aspect",
-            f"{output_width}:{output_height}",
-
-            # Better browser playback
-            "-movflags",
-            "+faststart",
-
-            # Remove audio
-            "-an",
-
-            browser_video_path
-        ]
-
-        try:
-
-            subprocess.run(
-                command,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                check=True
-            )
-
-        except subprocess.CalledProcessError:
-
-            st.error(
-                "❌ Video conversion failed."
-            )
-
-            cap.release()
-
-            if os.path.exists(output_path):
-                os.remove(output_path)
-
-            st.stop()
-
-        # =================================================
-        # SUCCESS
-        # =================================================
-
-        st.success(
-            "✅ Prediction completed!"
+            violation_detected
         )
 
-        # =================================================
-        # DETECTION RESULT
-        # =================================================
 
-        st.subheader(
-            "📊 Detection Result"
+    except Exception as error:
+
+        st.error(
+            f"Video processing error: {error}"
         )
 
-        # =================================================
-        # READ OUTPUT VIDEO
-        # =================================================
+        return None, False
 
-        with open(
-            browser_video_path,
-            "rb"
-        ) as video_file:
 
-            video_bytes = video_file.read()
+    finally:
 
-        # =================================================
-        # DISPLAY OUTPUT VIDEO
-        # =================================================
+        if (
+            input_path
+            and os.path.exists(input_path)
+        ):
 
-        st.video(
-            video_bytes,
-            format="video/mp4"
+            try:
+
+                os.remove(
+                    input_path
+                )
+
+            except:
+
+                pass
+
+
+# ============================================================
+# DISPLAY ALERT
+# ============================================================
+
+def display_alert():
+
+    if st.session_state.alert is None:
+
+        return
+
+
+    alert = st.session_state.alert
+
+
+    st.markdown(
+        f"""
+        <div class="alert-box">
+
+            🚨 ALERT MESSAGE
+
+            <br><br>
+
+            <b>Garbage Overflow Detected!</b>
+
+            <br><br>
+
+            📍 Location:
+            {alert["location"]}
+
+            <br>
+
+            🕒 Date & Time:
+            {alert["time"]}
+
+            <br>
+
+            ⚠️ Status:
+            {alert["status"]}
+
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+# ============================================================
+# PAGE 1 — HOME
+# ============================================================
+
+def page_one():
+
+    # --------------------------------------------------------
+    # MAIN HAND-DRAWN STYLE UI
+    # --------------------------------------------------------
+
+    st.markdown(
+        """
+        <div class="home-container">
+
+            <!-- HEADER -->
+
+            <div class="home-header">
+
+                <div class="home-header-title">
+                    ECOBIN AI
+                </div>
+
+                <div class="home-header-subtitle">
+                    Smart Garbage Overflow Detection System
+                </div>
+
+            </div>
+
+
+            <!-- MAIN BODY -->
+
+            <div class="home-body">
+
+
+                <!-- LEFT SIDE -->
+
+                <div class="home-left">
+
+                    <div class="aicw-text">
+
+                        AI Career for Women
+                        <br>
+
+                        (AICW)
+
+                    </div>
+
+
+                    <div class="project-text">
+
+                        Capstone Project
+
+                    </div>
+
+
+                    <div class="predict-placeholder">
+
+                    </div>
+
+                </div>
+
+
+                <!-- RIGHT SIDE -->
+
+                <div class="home-right">
+
+
+                    <!-- TITLE -->
+
+                    <div class="title-area">
+
+                        <h2>
+                            TITLE
+                        </h2>
+
+                    </div>
+
+
+                    <!-- DESCRIPTION -->
+
+                    <div class="description-area">
+
+                        <h2>
+                            DESCRIPTION
+                        </h2>
+
+                        <div class="description-text">
+
+                            EcoBin AI is an intelligent Smart Garbage
+                            Overflow Detection System designed to identify
+                            overflowing garbage bins automatically using
+                            Artificial Intelligence and computer vision.
+                            The system uses a trained YOLOv8 deep learning
+                            model to analyze camera images, uploaded images
+                            and videos and detect garbage overflow conditions.
+                            When an overflow violation is detected, EcoBin AI
+                            generates an alert containing the detection
+                            status, location and date and time. This system
+                            can help municipalities and sanitation teams
+                            monitor waste collection points, respond quickly
+                            to overflowing bins and improve cleanliness.
+                            The solution supports automated monitoring and
+                            helps create cleaner and smarter communities.
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- TEAM + GUIDE -->
+
+                    <div class="bottom-area">
+
+
+                        <!-- TEAM -->
+
+                        <div class="team-area">
+
+                            <div class="section-heading">
+                                TEAM MEMBERS
+                            </div>
+
+                            <div class="team-member">
+                                1. Member Name — member1@email.com
+                            </div>
+
+                            <div class="team-member">
+                                2. Member Name — member2@email.com
+                            </div>
+
+                            <div class="team-member">
+                                3. Member Name — member3@email.com
+                            </div>
+
+                            <div class="team-member">
+                                4. Member Name — member4@email.com
+                            </div>
+
+                        </div>
+
+
+                        <!-- GUIDE -->
+
+                        <div class="guide-area">
+
+                            <div class="section-heading">
+                                GUIDE
+                            </div>
+
+                            <div class="guide-name">
+                                Guide Name
+                            </div>
+
+                            <div class="guide-designation">
+                                Guide Designation
+                            </div>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+    # --------------------------------------------------------
+    # PREDICT BUTTON
+    # --------------------------------------------------------
+
+    left_space, _ = st.columns(
+        [37, 63]
+    )
+
+    with left_space:
+
+        if st.button(
+            "PREDICT",
+            key="home_predict",
+            type="primary"
+        ):
+
+            st.session_state.page = 2
+
+            st.rerun()
+
+
+# ============================================================
+# PAGE 2 — ECOBIN AI DETECTION
+# ============================================================
+
+def page_two():
+
+    # --------------------------------------------------------
+    # HEADER
+    # --------------------------------------------------------
+
+    st.markdown(
+        """
+        <div class="page2-header">
+
+            <h1>
+                ECOBIN AI
+            </h1>
+
+            <p>
+                Smart Garbage Overflow Detection System
+            </p>
+
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+    # --------------------------------------------------------
+    # BACK BUTTON
+    # --------------------------------------------------------
+
+    if st.button(
+        "⬅️ Back to Home",
+        key="back_home"
+    ):
+
+        clear_alert()
+
+        st.session_state.page = 1
+
+        st.rerun()
+
+
+    # --------------------------------------------------------
+    # LOCATION
+    # --------------------------------------------------------
+
+    st.subheader(
+        "📍 Detection Location"
+    )
+
+
+    location = st.text_input(
+        "Enter the garbage-bin / camera location",
+        value=st.session_state.location,
+        placeholder="Example: Visakhapatnam Municipal Area"
+    )
+
+
+    st.session_state.location = location
+
+
+    st.markdown("---")
+
+
+    # ========================================================
+    # ROW 1 — CAMERA
+    # ========================================================
+
+    st.markdown(
+        "## 📷 Camera"
+    )
+
+
+    camera_col1, camera_col2, camera_col3 = st.columns(
+        [1, 1, 1],
+        gap="medium"
+    )
+
+
+    # --------------------------------------------------------
+    # CAMERA
+    # --------------------------------------------------------
+
+    with camera_col1:
+
+        st.markdown(
+            """
+            <div class="detection-box">
+
+                <div class="detection-heading">
+                    Camera
+                </div>
+
+            """,
+            unsafe_allow_html=True
         )
 
-        # =================================================
-        # DOWNLOAD BUTTON
-        # =================================================
 
-        st.download_button(
-
-            label="⬇️ Download Detection Result",
-
-            data=video_bytes,
-
-            file_name=
-            "garbage_detection_result.mp4",
-
-            mime="video/mp4"
+        camera_photo = st.camera_input(
+            "Take Photo",
+            key="camera_photo"
         )
 
-        # =================================================
-        # FINAL RESULT
-        # =================================================
 
-        st.subheader(
-            "📢 Detection Status"
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True
         )
 
-        if overflow_found:
 
-            st.error(
-                "🚨 OVERFLOW DETECTED!"
-            )
+    # --------------------------------------------------------
+    # CAMERA INPUT
+    # --------------------------------------------------------
 
-            st.warning(
-                "Garbage overflow has been detected. "
-                "Immediate collection/cleaning is recommended."
+    camera_image = None
+
+
+    if camera_photo is not None:
+
+        camera_image = Image.open(
+            camera_photo
+        )
+
+
+    with camera_col2:
+
+        st.markdown(
+            """
+            <div class="detection-box">
+
+                <div class="detection-heading">
+                    Input
+                </div>
+
+            """,
+            unsafe_allow_html=True
+        )
+
+
+        if camera_image is not None:
+
+            st.image(
+                camera_image,
+                use_container_width=True
             )
 
         else:
 
-            st.success(
-                "🟢 No Overflow Detected"
+            st.info(
+                "Take a photo using the camera."
             )
 
-        # =================================================
-        # CLEAN TEMPORARY FILES
-        # =================================================
 
-        try:
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True
+        )
 
-            os.remove(
-                input_file.name
+
+    # --------------------------------------------------------
+    # CAMERA OUTPUT
+    # --------------------------------------------------------
+
+    camera_violation = False
+
+
+    with camera_col3:
+
+        st.markdown(
+            """
+            <div class="detection-box">
+
+                <div class="detection-heading">
+                    Output
+                </div>
+
+            """,
+            unsafe_allow_html=True
+        )
+
+
+        if camera_image is not None:
+
+            output_image, camera_violation = detect_image(
+                camera_image
             )
 
-            os.remove(
-                output_path
+
+            if output_image is not None:
+
+                st.image(
+                    output_image,
+                    channels="RGB",
+                    use_container_width=True
+                )
+
+
+            if camera_violation:
+
+                create_alert()
+
+
+        else:
+
+            st.info(
+                "Detection output will appear here."
             )
 
-            # Don't delete browser_video_path
-            # immediately because Streamlit needs it
-            # for the displayed/downloaded video.
 
-        except Exception:
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True
+        )
 
-            pass
+
+    # --------------------------------------------------------
+    # CAMERA ALERT
+    # --------------------------------------------------------
+
+    if camera_violation:
+
+        display_alert()
+
+
+    # ========================================================
+    # ROW 2 — IMAGE
+    # ========================================================
+
+    st.markdown("---")
+
+
+    st.markdown(
+        "## 🖼️ Image"
+    )
+
+
+    image_col1, image_col2, image_col3 = st.columns(
+        [1, 1, 1],
+        gap="medium"
+    )
+
+
+    # --------------------------------------------------------
+    # UPLOAD IMAGE
+    # --------------------------------------------------------
+
+    with image_col1:
+
+        st.markdown(
+            """
+            <div class="detection-box">
+
+                <div class="detection-heading">
+                    Upload Image
+                </div>
+
+            """,
+            unsafe_allow_html=True
+        )
+
+
+        uploaded_image = st.file_uploader(
+            "Choose Image",
+            type=[
+                "jpg",
+                "jpeg",
+                "png",
+                "webp"
+            ],
+            key="uploaded_image"
+        )
+
+
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True
+        )
+
+
+    # --------------------------------------------------------
+    # IMAGE INPUT
+    # --------------------------------------------------------
+
+    image_input = None
+
+
+    if uploaded_image is not None:
+
+        image_input = Image.open(
+            uploaded_image
+        )
+
+
+    with image_col2:
+
+        st.markdown(
+            """
+            <div class="detection-box">
+
+                <div class="detection-heading">
+                    Input
+                </div>
+
+            """,
+            unsafe_allow_html=True
+        )
+
+
+        if image_input is not None:
+
+            st.image(
+                image_input,
+                use_container_width=True
+            )
+
+        else:
+
+            st.info(
+                "Upload an image."
+            )
+
+
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True
+        )
+
+
+    # --------------------------------------------------------
+    # IMAGE OUTPUT
+    # --------------------------------------------------------
+
+    image_violation = False
+
+
+    with image_col3:
+
+        st.markdown(
+            """
+            <div class="detection-box">
+
+                <div class="detection-heading">
+                    Output
+                </div>
+
+            """,
+            unsafe_allow_html=True
+        )
+
+
+        if image_input is not None:
+
+            image_output, image_violation = detect_image(
+                image_input
+            )
+
+
+            if image_output is not None:
+
+                st.image(
+                    image_output,
+                    channels="RGB",
+                    use_container_width=True
+                )
+
+
+            if image_violation:
+
+                create_alert()
+
+
+        else:
+
+            st.info(
+                "Detection output will appear here."
+            )
+
+
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True
+        )
+
+
+    # --------------------------------------------------------
+    # IMAGE ALERT
+    # --------------------------------------------------------
+
+    if image_violation:
+
+        display_alert()
+
+
+    # ========================================================
+    # ROW 3 — VIDEO
+    # ========================================================
+
+    st.markdown("---")
+
+
+    st.markdown(
+        "## 🎥 Video"
+    )
+
+
+    video_col1, video_col2, video_col3 = st.columns(
+        [1, 1, 1],
+        gap="medium"
+    )
+
+
+    # --------------------------------------------------------
+    # UPLOAD VIDEO
+    # --------------------------------------------------------
+
+    with video_col1:
+
+        st.markdown(
+            """
+            <div class="detection-box">
+
+                <div class="detection-heading">
+                    Upload Video
+                </div>
+
+            """,
+            unsafe_allow_html=True
+        )
+
+
+        uploaded_video = st.file_uploader(
+            "Choose Video",
+            type=[
+                "mp4",
+                "avi",
+                "mov",
+                "mkv"
+            ],
+            key="uploaded_video"
+        )
+
+
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True
+        )
+
+
+    # --------------------------------------------------------
+    # VIDEO INPUT
+    # --------------------------------------------------------
+
+    with video_col2:
+
+        st.markdown(
+            """
+            <div class="detection-box">
+
+                <div class="detection-heading">
+                    Input
+                </div>
+
+            """,
+            unsafe_allow_html=True
+        )
+
+
+        if uploaded_video is not None:
+
+            st.video(
+                uploaded_video
+            )
+
+        else:
+
+            st.info(
+                "Upload a video."
+            )
+
+
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True
+        )
+
+
+    # --------------------------------------------------------
+    # VIDEO OUTPUT
+    # --------------------------------------------------------
+
+    with video_col3:
+
+        st.markdown(
+            """
+            <div class="detection-box">
+
+                <div class="detection-heading">
+                    Output
+                </div>
+
+            """,
+            unsafe_allow_html=True
+        )
+
+
+        if uploaded_video is not None:
+
+            detect_video = st.button(
+                "▶️ Detect Overflow",
+                key="detect_video"
+            )
+
+
+            if detect_video:
+
+                with st.spinner(
+                    "Processing video with YOLOv8..."
+                ):
+
+                    output_video, video_violation = process_video(
+                        uploaded_video
+                    )
+
+
+                if output_video is not None:
+
+                    with open(
+                        output_video,
+                        "rb"
+                    ) as video_file:
+
+                        video_bytes = video_file.read()
+
+
+                    st.video(
+                        video_bytes
+                    )
+
+
+                    st.download_button(
+                        "⬇️ Download Result",
+                        data=video_bytes,
+                        file_name="ecobin_detection.mp4",
+                        mime="video/mp4",
+                        key="download_result"
+                    )
+
+
+                    if video_violation:
+
+                        create_alert()
+
+
+        else:
+
+            st.info(
+                "Processed video will appear here."
+            )
+
+
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True
+        )
+
+
+    # --------------------------------------------------------
+    # VIDEO ALERT
+    # --------------------------------------------------------
+
+    if st.session_state.alert:
+
+        display_alert()
+
+
+# ============================================================
+# PAGE ROUTING
+# ============================================================
+
+if st.session_state.page == 1:
+
+    page_one()
+
+else:
+
+    page_two()
